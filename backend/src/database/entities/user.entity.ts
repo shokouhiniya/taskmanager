@@ -24,6 +24,9 @@ export class User {
   @Column({ unique: true, nullable: true })
   telegramId: string;
 
+  @Column({ unique: true, nullable: true })
+  baleId: string;
+
   @Column({ nullable: true })
   name: string;
 

@@ -46,17 +46,23 @@ function App() {
 
       const tgUser = WebApp.initDataUnsafe?.user;
       
-      console.log('🔍 Telegram WebApp detected');
+      console.log('🔍 Telegram/Bale WebApp detected');
       console.log('📱 Platform:', WebApp.platform);
-      console.log('👤 Telegram User:', tgUser);
+      console.log('👤 User:', tgUser);
       console.log('🔐 Init Data:', WebApp.initData);
       
       if (tgUser) {
-        // احراز هویت خودکار با Telegram
+        // تشخیص Telegram یا Bale
+        const isBale = window.location.hostname.includes('bale') || WebApp.platform === 'bale';
+        const endpoint = isBale ? '/auth/bale' : '/auth/telegram';
+        const idField = isBale ? 'baleId' : 'telegramId';
+        
+        console.log(`🚀 Attempting ${isBale ? 'Bale' : 'Telegram'} login...`);
+        
+        // احراز هویت خودکار
         try {
-          console.log('🚀 Attempting Telegram login...');
-          const response = await api.post('/auth/telegram', {
-            telegramId: tgUser.id.toString(),
+          const response = await api.post(endpoint, {
+            [idField]: tgUser.id.toString(),
             firstName: tgUser.first_name,
             lastName: tgUser.last_name,
             username: tgUser.username,
@@ -65,14 +71,14 @@ function App() {
           console.log('✅ Login successful:', response.data);
           handleLogin(response.data.access_token, response.data.user);
         } catch (error: any) {
-          console.error('❌ Telegram auth error:', error);
+          console.error(`❌ ${isBale ? 'Bale' : 'Telegram'} auth error:`, error);
           console.error('📋 Error details:', error.response?.data);
           WebApp.showAlert(`خطا در احراز هویت: ${error.response?.data?.message || error.message}`);
         }
       } else {
-        console.error('❌ No Telegram user data found');
+        console.error('❌ No user data found');
         console.error('📋 initDataUnsafe:', WebApp.initDataUnsafe);
-        WebApp.showAlert('اطلاعات کاربر تلگرام یافت نشد. لطفاً از طریق ربات وارد شوید.');
+        WebApp.showAlert('اطلاعات کاربر یافت نشد. لطفاً از طریق ربات وارد شوید.');
       }
     } else {
       // حالت عادی (بدون Telegram)

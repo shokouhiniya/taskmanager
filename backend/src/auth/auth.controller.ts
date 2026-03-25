@@ -36,4 +36,24 @@ export class AuthController {
       throw error;
     }
   }
+
+  @Post('bale')
+  async loginWithBale(@Body() body: { 
+    baleId: string; 
+    firstName: string; 
+    lastName?: string; 
+    username?: string;
+  }) {
+    try {
+      return await this.authService.loginWithBale(
+        body.baleId, 
+        body.firstName, 
+        body.lastName, 
+        body.username
+      );
+    } catch (error) {
+      console.error('❌ Bale login error:', error.message);
+      throw error;
+    }
+  }
 }

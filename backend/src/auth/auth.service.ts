@@ -110,4 +110,59 @@ export class AuthService {
       },
     };
   }
+
+  async loginWithBale(baleId: string, firstName: string, lastName?: string, username?: string) {
+    let user = await this.userRepository.findOne({ where: { baleId } });
+    
+    if (!user) {
+      // ایجاد کاربر جدید با Bale ID
+      const name = `${firstName}${lastName ? ' ' + lastName : ''}`;
+      const randomPassword = Math.random().toString(36).slice(-8);
+      const hashedPassword = await bcrypt.hash(randomPassword, 10);
+      
+      user = this.userRepository.create({
+        baleId,
+        username: username || `bale_${baleId}`,
+        password: hashedPassword,
+        phone: baleId,
+        name,
+        role: 'reporter',
+      });
+      
+      try {
+        user = await this.userRepository.save(user);
+      } catch (error) {
+        // اگر کاربر با این baleId وجود داره ولی password نداره
+        user = await this.userRepository.findOne({ where: { baleId } });
+        if (user && !user.password) {
+          // آپدیت کردن password
+          user.password = hashedPassword;
+          user.name = name;
+          if (username) user.username = username;
+          user = await this.userRepository.save(user);
+        } else {
+          throw error;
+        }
+      }
+    } else if (!user.password) {
+      // اگر کاربر وجود داره ولی password نداره، یکی بهش بدیم
+      const randomPassword = Math.random().toString(36).slice(-8);
+      const hashedPassword = await bcrypt.hash(randomPassword, 10);
+      user.password = hashedPassword;
+      user = await this.userRepository.save(user);
+    }
+
+    const payload = { sub: user.id, baleId: user.baleId, role: user.role };
+    return {
+      access_token: this.jwtService.sign(payload),
+      user: {
+        id: user.id,
+        username: user.username,
+        phone: user.phone,
+        name: user.name,
+        role: user.role,
+        baleId: user.baleId,
+      },
+    };
+  }
 }
