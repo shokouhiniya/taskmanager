@@ -1,8 +1,10 @@
 import axios from 'axios';
 
-// در production از /api استفاده می‌کنیم (nginx reverse proxy)
+// آدرس API از environment variable یا fallback به همون origin با /api
+const API_URL = import.meta.env.VITE_API_URL || '/api';
+
 const api = axios.create({
-  baseURL: '/api',
+  baseURL: API_URL,
 });
 
 // Interceptor برای اضافه کردن token به هر request
