@@ -1,4 +1,4 @@
-# Frontend Dockerfile - uses vite preview to serve
+# Frontend Dockerfile
 FROM hub.megan.ir/node:18-alpine
 
 WORKDIR /app

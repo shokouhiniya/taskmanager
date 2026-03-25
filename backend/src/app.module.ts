@@ -20,8 +20,9 @@ import { ActionLog } from './database/entities/action-log.entity';
   imports: [
     ConfigModule.forRoot(),
     TypeOrmModule.forRoot({
-      type: 'sqlite',
-      database: 'incident_system.db',
+      type: 'sqljs',
+      location: 'incident_system.db',
+      autoSave: true,
       entities: [User, Form, Category, Report, Action, ActionLog],
       synchronize: true,
     }),
