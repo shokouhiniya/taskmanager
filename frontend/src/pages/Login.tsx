@@ -63,19 +63,6 @@ export default function Login({ onLogin }: { onLogin: (token: string, user: any)
             {loading ? '⏳ در حال ورود...' : '🔐 ورود به سامانه'}
           </button>
         </form>
-        
-        <div style={{ 
-          marginTop: '1.5rem', 
-          padding: '1rem', 
-          background: '#e3f2fd', 
-          borderRadius: '8px',
-          fontSize: '13px',
-          color: '#1565c0'
-        }}>
-          <strong>💡 اطلاعات ورود پیش‌فرض:</strong><br/>
-          نام کاربری: <code style={{ background: 'white', padding: '2px 6px', borderRadius: '4px' }}>admin</code><br/>
-          رمز عبور: <code style={{ background: 'white', padding: '2px 6px', borderRadius: '4px' }}>1236987450</code>
-        </div>
       </div>
     </div>
   );
