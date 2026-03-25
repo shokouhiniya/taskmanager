@@ -1,104 +1,64 @@
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
+import { IconHome, IconFile, IconZap, IconGrid, IconFolder, IconUsers, IconLock, IconLogout, IconInbox, IconList } from './Icons';
 
 export default function Navbar({ user, onLogout }: { user: any; onLogout: () => void }) {
   const navigate = useNavigate();
+  const location = useLocation();
 
-  const handleLogout = () => {
-    onLogout();
-    navigate('/');
-  };
+  const handleLogout = () => { onLogout(); navigate('/'); };
+
+  const isActive = (path: string) => location.pathname === path;
+
+  const linkStyle = (path: string): React.CSSProperties => ({
+    display: 'flex', alignItems: 'center', gap: '0.375rem',
+    color: isActive(path) ? 'var(--accent)' : 'var(--text-secondary)',
+    textDecoration: 'none', fontSize: '13px', fontWeight: isActive(path) ? 600 : 400,
+    padding: '0.375rem 0.625rem', borderRadius: 'var(--radius-sm)',
+    background: isActive(path) ? 'var(--accent-light)' : 'transparent',
+    transition: 'all var(--transition)',
+  });
 
   return (
-    <nav style={{ 
-      background: 'rgba(255, 255, 255, 0.95)', 
-      color: '#1976d2', 
-      boxShadow: '0 4px 20px rgba(0,0,0,0.1)',
-      backdropFilter: 'blur(10px)',
-      borderBottom: '1px solid rgba(255, 255, 255, 0.3)'
-    }}>
-      <div style={{ 
-        maxWidth: '1200px', 
-        margin: '0 auto', 
-        padding: '1rem', 
-        display: 'flex', 
-        justifyContent: 'space-between',
-        alignItems: 'center'
-      }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '2rem' }}>
-          <Link to="/" style={{ textDecoration: 'none', color: '#1976d2' }}>
-            <h2 style={{ margin: 0, fontSize: '20px', fontWeight: 700 }}>📋 سامانه مدیریت خبر</h2>
+    <nav style={{ background: 'var(--surface)', borderBottom: '1px solid var(--border)', position: 'sticky', top: 0, zIndex: 50 }}>
+      <div style={{ padding: '0.75rem 1rem' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.625rem' }}>
+          <Link to="/" style={{ textDecoration: 'none', color: 'var(--text-primary)', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+            <div style={{ width: 28, height: 28, borderRadius: 8, background: 'var(--accent)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontSize: 14, fontWeight: 700 }}>خ</div>
+            <span style={{ fontSize: 14, fontWeight: 700 }}>سامانه خبر</span>
           </Link>
-          
-          <div style={{ display: 'flex', gap: '1rem' }}>
-            <Link to="/" style={{ color: '#1976d2', textDecoration: 'none', fontSize: '14px', fontWeight: 600, opacity: 0.8 }}>
-              داشبورد
-            </Link>
-            {user?.role === 'reporter' ? (
-              <>
-                <Link to="/reports" style={{ color: '#1976d2', textDecoration: 'none', fontSize: '14px', fontWeight: 600, opacity: 0.8 }}>
-                  خبرهای من
-                </Link>
-                <Link to="/reports/assigned" style={{ color: '#1976d2', textDecoration: 'none', fontSize: '14px', fontWeight: 600, opacity: 0.8 }}>
-                  خبرهای ارجاع شده
-                </Link>
-                <Link to="/actions/my" style={{ color: '#1976d2', textDecoration: 'none', fontSize: '14px', fontWeight: 600, opacity: 0.8 }}>
-                  اقدامات من
-                </Link>
-              </>
-            ) : (
-              <>
-                <Link to="/reports" style={{ color: '#1976d2', textDecoration: 'none', fontSize: '14px', fontWeight: 600, opacity: 0.8 }}>
-                  همه خبرها
-                </Link>
-                <Link to="/actions" style={{ color: '#1976d2', textDecoration: 'none', fontSize: '14px', fontWeight: 600, opacity: 0.8 }}>
-                  اقدامات
-                </Link>
-              </>
-            )}
-            {user?.role === 'admin' && (
-              <>
-                <Link to="/forms" style={{ color: '#1976d2', textDecoration: 'none', fontSize: '14px', fontWeight: 600, opacity: 0.8 }}>
-                  فرم‌ساز
-                </Link>
-                <Link to="/categories" style={{ color: '#1976d2', textDecoration: 'none', fontSize: '14px', fontWeight: 600, opacity: 0.8 }}>
-                  دسته‌بندی‌ها
-                </Link>
-                <Link to="/users" style={{ color: '#1976d2', textDecoration: 'none', fontSize: '14px', fontWeight: 600, opacity: 0.8 }}>
-                  کاربران
-                </Link>
-              </>
-            )}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+            <div style={{ textAlign: 'left', fontSize: 12, color: 'var(--text-secondary)' }}>
+              <div style={{ fontWeight: 600, color: 'var(--text-primary)' }}>{user?.name || user?.username}</div>
+              <div style={{ fontSize: 11, color: 'var(--text-tertiary)' }}>
+                {user?.role === 'admin' ? 'مدیر' : user?.role === 'operator' ? 'کارشناس' : 'کاربر'}
+              </div>
+            </div>
+            <button onClick={handleLogout} className="ghost" style={{ padding: '0.375rem', color: 'var(--text-tertiary)' }}>
+              <IconLogout />
+            </button>
           </div>
         </div>
-        
-        <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-          <div style={{ fontSize: '14px', color: '#424242' }}>
-            <div style={{ fontWeight: 600 }}>{user?.name || user?.username}</div>
-            <div style={{ fontSize: '12px', opacity: 0.7 }}>
-              {user?.role === 'admin' ? 'مدیر' : user?.role === 'operator' ? 'کارشناس' : 'کاربر'}
-            </div>
-          </div>
-          <button 
-            onClick={() => navigate('/change-password')}
-            style={{ 
-              background: 'rgba(25, 118, 210, 0.1)', 
-              color: '#1976d2',
-              padding: '0.5rem 1rem',
-              fontSize: '13px'
-            }}
-          >
-            🔐 تغییر رمز
-          </button>
-          <button 
-            onClick={handleLogout} 
-            className="danger"
-            style={{ 
-              padding: '0.5rem 1rem',
-              fontSize: '13px'
-            }}
-          >
-            خروج
-          </button>
+        <div style={{ display: 'flex', gap: '0.25rem', overflowX: 'auto', paddingBottom: 2 }}>
+          <Link to="/" style={linkStyle('/')}><IconHome /> داشبورد</Link>
+          {user?.role === 'reporter' ? (
+            <>
+              <Link to="/reports" style={linkStyle('/reports')}><IconFile /> خبرها</Link>
+              <Link to="/reports/assigned" style={linkStyle('/reports/assigned')}><IconInbox /> ارجاعی</Link>
+              <Link to="/actions/my" style={linkStyle('/actions/my')}><IconZap /> اقدامات</Link>
+            </>
+          ) : (
+            <>
+              <Link to="/reports" style={linkStyle('/reports')}><IconList /> خبرها</Link>
+              <Link to="/actions" style={linkStyle('/actions')}><IconZap /> اقدامات</Link>
+            </>
+          )}
+          {user?.role === 'admin' && (
+            <>
+              <Link to="/forms" style={linkStyle('/forms')}><IconGrid /> فرم‌ها</Link>
+              <Link to="/categories" style={linkStyle('/categories')}><IconFolder /> دسته‌ها</Link>
+              <Link to="/users" style={linkStyle('/users')}><IconUsers /> کاربران</Link>
+            </>
+          )}
         </div>
       </div>
     </nav>

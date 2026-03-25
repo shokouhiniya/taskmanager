@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import api from '../api/axios';
 import { useNavigate } from 'react-router-dom';
+import { IconChevron, IconFile } from '../components/Icons';
 
 export default function CreateReport() {
   const [forms, setForms] = useState([]);
@@ -10,166 +11,74 @@ export default function CreateReport() {
   const [categoryId, setCategoryId] = useState('');
   const navigate = useNavigate();
 
-  useEffect(() => {
-    fetchForms();
-    fetchCategories();
-  }, []);
-
-  const fetchForms = async () => {
-    try {
-      const response = await api.get('/forms');
-      setForms(response.data);
-    } catch (error) {
-      console.error('Error:', error);
-    }
-  };
-
-  const fetchCategories = async () => {
-    try {
-      const response = await api.get('/categories');
-      setCategories(response.data);
-    } catch (error) {
-      console.error('Error:', error);
-    }
-  };
+  useEffect(() => { fetchForms(); fetchCategories(); }, []);
+  const fetchForms = async () => { try { setForms((await api.get('/forms')).data); } catch (e) { console.error(e); } };
+  const fetchCategories = async () => { try { setCategories((await api.get('/categories')).data); } catch (e) { console.error(e); } };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      await api.post('/reports', {
-        formId: selectedForm.id,
-        data: formData,
-        categoryId
-      });
-      alert('✅ خبر با موفقیت ثبت شد');
+      await api.post('/reports', { formId: selectedForm.id, data: formData, categoryId });
+      alert('خبر با موفقیت ثبت شد');
       navigate('/reports');
-    } catch (error) {
-      alert('❌ خطا در ثبت خبر');
-      console.error(error);
-    }
+    } catch { alert('خطا در ثبت خبر'); }
   };
 
   return (
     <div className="container">
-      <div className="page-header" style={{ flexDirection: 'row', gap: '0.75rem', alignItems: 'center' }}>
-        <h1 className="page-title" style={{ flex: 1, fontSize: '20px' }}>📝 ثبت خبر جدید</h1>
-        <button onClick={() => navigate('/')} className="secondary" style={{ fontSize: '13px', padding: '0.5rem 1rem' }}>
-          🏠 بازگشت
-        </button>
+      <div className="page-header">
+        <h1 className="page-title">ثبت خبر جدید</h1>
+        <button onClick={() => navigate(-1)} className="ghost" style={{ padding: '0.375rem' }}><IconChevron /></button>
       </div>
-      
-      <div className="card">
+
+      <div className="card" style={{ padding: '1.25rem' }}>
         {!selectedForm ? (
-          <div>
-            <h3 style={{ marginBottom: '1.5rem', fontSize: '16px', color: '#212121' }}>انتخاب نوع فرم</h3>
+          <>
+            <label style={{ marginBottom: 12, fontSize: 13, fontWeight: 600, color: 'var(--text-primary)' }}>نوع فرم را انتخاب کنید</label>
             {forms.length === 0 ? (
-              <div style={{ textAlign: 'center', padding: '2rem' }}>
-                <div style={{ fontSize: '48px', marginBottom: '1rem' }}>📭</div>
-                <p style={{ color: '#757575', fontSize: '14px' }}>هیچ فرمی موجود نیست</p>
+              <div className="empty-state"><p>فرمی موجود نیست</p></div>
+            ) : forms.map((f: any) => (
+              <div key={f.id} onClick={() => setSelectedForm(f)} className="card"
+                style={{ cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.75rem', border: '1px solid var(--border)' }}>
+                <div style={{ width: 36, height: 36, borderRadius: 8, background: 'var(--accent-light)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--accent)' }}>
+                  <IconFile />
+                </div>
+                <div style={{ flex: 1 }}>
+                  <div style={{ fontSize: 13, fontWeight: 600 }}>{f.title}</div>
+                  <div style={{ fontSize: 11, color: 'var(--text-tertiary)' }}>{f.schema?.fields?.length || 0} فیلد</div>
+                </div>
               </div>
-            ) : (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-                {forms.map((form: any) => (
-                  <div
-                    key={form.id}
-                    onClick={() => setSelectedForm(form)}
-                    className="card"
-                    style={{ 
-                      cursor: 'pointer',
-                      border: '2px solid rgba(224, 224, 224, 0.5)',
-                      transition: 'all 0.2s ease',
-                      padding: '1rem'
-                    }}
-                  >
-                    <h4 style={{ marginBottom: '0.5rem', color: '#212121', fontSize: '15px' }}>{form.title}</h4>
-                    <p style={{ fontSize: '13px', color: '#757575' }}>
-                      📊 {form.schema?.fields?.length || 0} فیلد
-                    </p>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
+            ))}
+          </>
         ) : (
           <form onSubmit={handleSubmit}>
-            <div style={{ 
-              display: 'flex', 
-              justifyContent: 'space-between', 
-              alignItems: 'center',
-              marginBottom: '1.5rem',
-              paddingBottom: '1rem',
-              borderBottom: '2px solid rgba(240, 240, 240, 0.5)',
-              gap: '0.75rem'
-            }}>
-              <h3 style={{ fontSize: '16px', color: '#212121', flex: 1 }}>📋 {selectedForm.title}</h3>
-              <button 
-                type="button" 
-                onClick={() => setSelectedForm(null)} 
-                className="secondary"
-                style={{ fontSize: '12px', padding: '0.5rem 0.875rem', whiteSpace: 'nowrap' }}
-              >
-                🔄 تغییر
-              </button>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16, paddingBottom: 12, borderBottom: '1px solid var(--border-light)' }}>
+              <span style={{ fontSize: 14, fontWeight: 600 }}>{selectedForm.title}</span>
+              <button type="button" onClick={() => setSelectedForm(null)} className="ghost" style={{ fontSize: 12 }}>تغییر</button>
             </div>
-            
+
             <div className="field-group">
               <label>دسته‌بندی</label>
               <select value={categoryId} onChange={(e) => setCategoryId(e.target.value)} required>
-                <option value="">📁 انتخاب دسته‌بندی</option>
-                {categories.map((cat: any) => (
-                  <option key={cat.id} value={cat.id}>{cat.name}</option>
-                ))}
+                <option value="">انتخاب دسته‌بندی</option>
+                {categories.map((c: any) => <option key={c.id} value={c.id}>{c.name}</option>)}
               </select>
             </div>
 
             {selectedForm.schema?.fields?.map((field: any) => (
               <div key={field.name} className="field-group">
                 <label>{field.label}</label>
-                {field.type === 'text' && (
-                  <input
-                    type="text"
-                    value={formData[field.name] || ''}
-                    onChange={(e) => setFormData({ ...formData, [field.name]: e.target.value })}
-                    required={field.required}
-                    placeholder={`${field.label} را وارد کنید`}
-                  />
-                )}
-                {field.type === 'textarea' && (
-                  <textarea
-                    value={formData[field.name] || ''}
-                    onChange={(e) => setFormData({ ...formData, [field.name]: e.target.value })}
-                    required={field.required}
-                    rows={4}
-                    placeholder={`${field.label} را وارد کنید`}
-                  />
-                )}
-                {field.type === 'number' && (
-                  <input
-                    type="number"
-                    value={formData[field.name] || ''}
-                    onChange={(e) => setFormData({ ...formData, [field.name]: e.target.value })}
-                    required={field.required}
-                    placeholder={`${field.label} را وارد کنید`}
-                  />
-                )}
-                {field.type === 'date' && (
-                  <input
-                    type="date"
-                    value={formData[field.name] || ''}
-                    onChange={(e) => setFormData({ ...formData, [field.name]: e.target.value })}
-                    required={field.required}
-                  />
+                {field.type === 'textarea' ? (
+                  <textarea value={formData[field.name] || ''} onChange={(e) => setFormData({ ...formData, [field.name]: e.target.value })} required={field.required} rows={3} placeholder={field.label} />
+                ) : (
+                  <input type={field.type === 'number' ? 'number' : field.type === 'date' ? 'date' : 'text'} value={formData[field.name] || ''} onChange={(e) => setFormData({ ...formData, [field.name]: e.target.value })} required={field.required} placeholder={field.label} />
                 )}
               </div>
             ))}
 
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', marginTop: '1.5rem' }}>
-              <button type="submit" className="success" style={{ width: '100%' }}>
-                ✅ ثبت خبر
-              </button>
-              <button type="button" onClick={() => navigate('/reports')} className="secondary" style={{ width: '100%' }}>
-                ❌ انصراف
-              </button>
+            <div style={{ display: 'flex', gap: 8, marginTop: 16 }}>
+              <button type="submit" className="success" style={{ flex: 1 }}>ثبت خبر</button>
+              <button type="button" onClick={() => navigate('/reports')} className="secondary" style={{ flex: 1 }}>انصراف</button>
             </div>
           </form>
         )}
