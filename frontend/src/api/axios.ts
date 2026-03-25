@@ -1,17 +1,9 @@
 import axios from 'axios';
 
-// تشخیص محیط Telegram Mini App
-const isTelegramWebApp = window.Telegram?.WebApp?.platform !== 'unknown';
-
-// در Telegram از proxy استفاده می‌کنیم (/api -> localhost:3000)
+// در production از /api استفاده می‌کنیم (nginx reverse proxy)
 const api = axios.create({
-  baseURL: isTelegramWebApp 
-    ? '/api' 
-    : 'http://localhost:3000',
+  baseURL: '/api',
 });
-
-console.log('🌐 API Base URL:', api.defaults.baseURL);
-console.log('📱 Is Telegram WebApp:', isTelegramWebApp);
 
 // Interceptor برای اضافه کردن token به هر request
 api.interceptors.request.use(
