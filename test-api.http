@@ -1,0 +1,191 @@
+### ورود به سیستم (ادمین)
+POST http://localhost:3000/auth/login
+Content-Type: application/json
+
+{
+  "username": "admin",
+  "password": "1236987450"
+}
+
+### ورود کاربر عادی
+POST http://localhost:3000/auth/login
+Content-Type: application/json
+
+{
+  "username": "user1",
+  "password": "123456"
+}
+
+### دریافت لیست دسته‌بندی‌ها
+GET http://localhost:3000/categories
+Authorization: Bearer YOUR_TOKEN_HERE
+
+### ایجاد فرم جدید
+POST http://localhost:3000/forms
+Authorization: Bearer YOUR_TOKEN_HERE
+Content-Type: application/json
+
+{
+  "title": "گزارش مشکل فنی",
+  "schema": {
+    "fields": [
+      {
+        "name": "title",
+        "label": "عنوان مشکل",
+        "type": "text",
+        "required": true
+      },
+      {
+        "name": "description",
+        "label": "شرح کامل",
+        "type": "textarea",
+        "required": true
+      }
+    ]
+  }
+}
+
+### دریافت لیست فرم‌ها
+GET http://localhost:3000/forms
+Authorization: Bearer YOUR_TOKEN_HERE
+
+### ثبت خبر جدید
+POST http://localhost:3000/reports
+Authorization: Bearer YOUR_TOKEN_HERE
+Content-Type: application/json
+
+{
+  "formId": "FORM_ID_HERE",
+  "categoryId": "CATEGORY_ID_HERE",
+  "data": {
+    "title": "مشکل در سرور",
+    "description": "سرور پاسخ نمی‌دهد"
+  }
+}
+
+### دریافت خبرهای من
+GET http://localhost:3000/reports/my
+Authorization: Bearer YOUR_TOKEN_HERE
+
+### دریافت همه خبرها
+GET http://localhost:3000/reports
+Authorization: Bearer YOUR_TOKEN_HERE
+
+### تغییر وضعیت خبر (approved/assigned/rejected)
+PUT http://localhost:3000/reports/REPORT_ID_HERE/status
+Authorization: Bearer YOUR_TOKEN_HERE
+Content-Type: application/json
+
+{
+  "status": "approved"
+}
+
+### ارجاع خبر به کاربر
+PUT http://localhost:3000/reports/REPORT_ID_HERE/assign
+Authorization: Bearer YOUR_TOKEN_HERE
+Content-Type: application/json
+
+{
+  "assignedToId": "USER_ID_HERE"
+}
+
+### ایجاد اقدام
+POST http://localhost:3000/actions
+Authorization: Bearer YOUR_TOKEN_HERE
+Content-Type: application/json
+
+{
+  "title": "بررسی سرور",
+  "description": "بررسی و رفع مشکل سرور",
+  "assignedToId": "USER_ID_HERE",
+  "reportIds": ["REPORT_ID_HERE"]
+}
+
+### دریافت لیست اقدامات
+GET http://localhost:3000/actions
+Authorization: Bearer YOUR_TOKEN_HERE
+
+### ثبت گزارش اقدام
+POST http://localhost:3000/actions/ACTION_ID_HERE/logs
+Authorization: Bearer YOUR_TOKEN_HERE
+Content-Type: application/json
+
+{
+  "description": "سرور ریستارت شد",
+  "result": "مشکل برطرف شد",
+  "cost": 0
+}
+
+### تغییر وضعیت اقدام
+PUT http://localhost:3000/actions/ACTION_ID_HERE/status
+Authorization: Bearer YOUR_TOKEN_HERE
+Content-Type: application/json
+
+{
+  "status": "completed"
+}
+
+### دریافت لیست کاربران
+GET http://localhost:3000/users
+Authorization: Bearer YOUR_TOKEN_HERE
+
+### Seed دیتای اولیه
+POST http://localhost:3000/seed
+
+### ایجاد کاربر جدید (فقط ادمین)
+POST http://localhost:3000/users
+Authorization: Bearer YOUR_TOKEN_HERE
+Content-Type: application/json
+
+{
+  "username": "user1",
+  "password": "123456",
+  "phone": "09121111111",
+  "name": "کاربر تست",
+  "role": "reporter"
+}
+
+### تغییر نقش کاربر
+PUT http://localhost:3000/users/USER_ID_HERE/role
+Authorization: Bearer YOUR_TOKEN_HERE
+Content-Type: application/json
+
+{
+  "role": "operator"
+}
+
+### حذف کاربر
+DELETE http://localhost:3000/users/USER_ID_HERE
+Authorization: Bearer YOUR_TOKEN_HERE
+
+### تغییر رمز عبور
+PUT http://localhost:3000/auth/change-password
+Authorization: Bearer YOUR_TOKEN_HERE
+Content-Type: application/json
+
+{
+  "oldPassword": "1236987450",
+  "newPassword": "new_password_here"
+}
+
+### دریافت خبرهای ارجاع شده به من
+GET http://localhost:3000/reports/assigned
+Authorization: Bearer YOUR_TOKEN_HERE
+
+### ایجاد دسته‌بندی جدید
+POST http://localhost:3000/categories
+Authorization: Bearer YOUR_TOKEN_HERE
+Content-Type: application/json
+
+{
+  "name": "تست",
+  "description": "دسته‌بندی تستی"
+}
+
+### حذف دسته‌بندی
+DELETE http://localhost:3000/categories/CATEGORY_ID_HERE
+Authorization: Bearer YOUR_TOKEN_HERE
+
+### حذف فرم
+DELETE http://localhost:3000/forms/FORM_ID_HERE
+Authorization: Bearer YOUR_TOKEN_HERE
