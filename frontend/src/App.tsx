@@ -99,7 +99,7 @@ function App() {
 
   return (
     <BrowserRouter>
-      <div style={{ minHeight: '100vh', paddingBottom: isTelegramWebApp ? '70px' : '0' }}>
+      <div style={{ minHeight: '100vh', paddingBottom: '70px' }}>
         {!isTelegramWebApp && <Navbar user={user} onLogout={handleLogout} />}
         <Routes>
           <Route path="/" element={<Dashboard user={user} isTelegramWebApp={isTelegramWebApp} />} />

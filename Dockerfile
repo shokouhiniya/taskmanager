@@ -1,4 +1,4 @@
-# Backend Dockerfile - pure JS dependencies, no native build needed
+# Backend Dockerfile
 FROM hub.megan.ir/node:18-alpine
 
 WORKDIR /app
@@ -7,6 +7,7 @@ RUN npm config set registry https://hub.megan.ir/npm
 RUN npm install --ignore-scripts
 
 COPY backend/ ./
+RUN mkdir -p /app/data
 RUN npm run build
 
 EXPOSE 3000
