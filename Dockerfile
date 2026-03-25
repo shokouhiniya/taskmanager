@@ -3,8 +3,9 @@ FROM hub.megan.ir/node:18-alpine
 
 WORKDIR /app
 COPY backend/package.json backend/package-lock.json* ./
-RUN npm install --ignore-scriptsRUN npm config set registry https://hub.megan.ir/npm
-RUN
+RUN npm config set registry https://hub.megan.ir/npm
+RUN npm install --ignore-scripts
+
 COPY backend/ ./
 RUN npm run build
 
