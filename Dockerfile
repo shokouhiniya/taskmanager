@@ -1,5 +1,5 @@
 # Stage 1: Build frontend
-FROM node:18-alpine AS frontend-build
+FROM hub.megan.ir/node:18-alpine AS frontend-build
 WORKDIR /app/frontend
 COPY frontend/package.json frontend/package-lock.json* ./
 RUN npm install
@@ -7,7 +7,7 @@ COPY frontend/ ./
 RUN npm run build
 
 # Stage 2: Build backend
-FROM node:18-alpine AS backend-build
+FROM hub.megan.ir/node:18-alpine AS backend-build
 WORKDIR /app/backend
 COPY backend/package.json backend/package-lock.json* ./
 RUN npm install
@@ -15,7 +15,7 @@ COPY backend/ ./
 RUN npm run build
 
 # Stage 3: Production
-FROM node:18-alpine
+FROM hub.megan.ir/node:18-alpine
 RUN apk add --no-cache nginx supervisor
 
 # Setup nginx
