@@ -1,15 +1,18 @@
-# 🚀 Telegram Mini App - Incident & Action Management System
+# 🚀 Telegram & Bale Mini App - Incident & Action Management System
 
-A full-stack incident and action management system built as a Telegram Mini App with NestJS backend and React frontend.
+A full-stack incident and action management system built as a Mini App for **Telegram** and **Bale** messengers with NestJS backend and React frontend.
 
 ![License](https://img.shields.io/badge/license-MIT-blue.svg)
 ![Node](https://img.shields.io/badge/node-%3E%3D18.0.0-brightgreen.svg)
 ![TypeScript](https://img.shields.io/badge/TypeScript-5.0-blue.svg)
+![Platforms](https://img.shields.io/badge/platforms-Telegram%20%7C%20Bale-blue.svg)
 
 ## ✨ Features
 
 ### 🔐 Authentication
-- Telegram WebApp authentication with automatic login
+- **Telegram** WebApp authentication with automatic login
+- **Bale** WebApp authentication with automatic login
+- Automatic platform detection
 - JWT token-based authentication
 - Username/password login for web access
 - Role-based access control (Admin, Operator, Reporter)
@@ -51,7 +54,7 @@ A full-stack incident and action management system built as a Telegram Mini App 
 - **Framework:** NestJS
 - **Database:** SQLite with TypeORM
 - **Authentication:** JWT + Passport
-- **Telegram:** node-telegram-bot-api
+- **Messengers:** Telegram & Bale (node-telegram-bot-api)
 - **Password:** bcrypt
 
 ### Frontend
@@ -67,7 +70,8 @@ A full-stack incident and action management system built as a Telegram Mini App 
 ### Prerequisites
 - Node.js >= 18.0.0
 - npm or yarn
-- Telegram Bot Token (from [@BotFather](https://t.me/BotFather))
+- **Telegram** Bot Token (from [@BotFather](https://t.me/BotFather))
+- **Bale** Bot Token (from [@BotFather](https://ble.ir/BotFather))
 - ngrok (for local development)
 
 ### 1. Clone the repository
@@ -96,8 +100,16 @@ Create `backend/.env`:
 ```env
 JWT_SECRET=your-super-secret-jwt-key-change-this
 TELEGRAM_BOT_TOKEN=your-telegram-bot-token
+BALE_BOT_TOKEN=your-bale-bot-token
+BALE_API_URL=https://tapi.bale.ai
 WEBAPP_URL=https://your-ngrok-url.ngrok-free.dev
 PORT=3000
+```
+
+Or copy from example:
+```bash
+cp backend/.env.example backend/.env
+# Then edit with your tokens
 ```
 
 ### 4. Start the application
@@ -119,25 +131,45 @@ npm run dev
 ngrok http 5173
 ```
 
-### 5. Configure Telegram Bot
+### 5. Configure Bots
 
+#### For Telegram:
 1. Go to [@BotFather](https://t.me/BotFather)
 2. Send `/mybots` → Select your bot
 3. Bot Settings → Menu Button → Configure Menu Button
 4. URL: `https://your-ngrok-url.ngrok-free.dev`
 5. Text: `🚀 ورود به سامانه`
 
+#### For Bale:
+1. Go to [@BotFather](https://ble.ir/BotFather) in Bale
+2. Send `/setminiapp`
+3. URL: `https://your-ngrok-url.ngrok-free.dev`
+4. Text: `🚀 ورود به سامانه`
+
 ## 🚀 Quick Start Scripts
 
-### Windows
+### For Telegram
+#### Windows
 ```bash
 start-telegram-app.bat
 ```
 
-### Linux/Mac
+#### Linux/Mac
 ```bash
 chmod +x start-telegram-app.sh
 ./start-telegram-app.sh
+```
+
+### For Bale
+#### Windows
+```bash
+start-bale-app.bat
+```
+
+#### Linux/Mac
+```bash
+chmod +x start-bale-app.sh
+./start-bale-app.sh
 ```
 
 ## 📱 Usage
@@ -148,6 +180,13 @@ chmod +x start-telegram-app.sh
 3. Click on the Menu Button
 4. Mini App opens automatically
 5. You're logged in with your Telegram account
+
+### For Bale Mini App
+1. Open your bot in Bale
+2. Send `/start`
+3. Click on the Mini App button
+4. Mini App opens automatically
+5. You're logged in with your Bale account
 
 ### For Web Access
 1. Open `http://localhost:5173`
@@ -183,12 +222,17 @@ taskmanager/
 
 ## 📚 Documentation
 
-- [English Setup Guide](TELEGRAM_SETUP.md)
-- [Persian Quick Start](شروع_سریع_تلگرام.md)
-- [Persian Complete Guide](راهنمای_تلگرام.md)
-- [Step by Step Guide](راهنمای_گام_به_گام_تلگرام.md)
-- [User Management Guide](راهنمای_مدیریت_کاربران.md)
-- [Troubleshooting](راهنمای_رفع_مشکل_لاگین.md)
+### English
+- [Telegram Setup Guide](TELEGRAM_SETUP.md)
+- [Bale Setup Guide](BALE_SETUP.md)
+
+### Persian (فارسی)
+- [راهنمای تلگرام](راهنمای_تلگرام.md)
+- [راهنمای بله](راهنمای_بله.md)
+- [شروع سریع](شروع_سریع_تلگرام.md)
+- [راهنمای گام به گام](راهنمای_گام_به_گام_تلگرام.md)
+- [مدیریت کاربران](راهنمای_مدیریت_کاربران.md)
+- [رفع مشکلات](راهنمای_رفع_مشکل_لاگین.md)
 
 ## 🔧 Configuration
 
