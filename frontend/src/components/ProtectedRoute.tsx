@@ -7,7 +7,7 @@ export default function ProtectedRoute({
   children: React.ReactNode; 
   allowedRoles: string[] 
 }) {
-  const userStr = localStorage.getItem('user');
+  const userStr = localStorage.getItem('app_user');
   if (!userStr) {
     return <Navigate to="/" replace />;
   }

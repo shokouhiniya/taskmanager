@@ -43,6 +43,11 @@ function App() {
         const isBale = window.location.hostname.includes('bale') || WebApp.platform === 'bale';
         const endpoint = isBale ? '/auth/bale' : '/auth/telegram';
         const idField = isBale ? 'baleId' : 'telegramId';
+        
+        // پاک کردن localStorage قبلی برای بررسی مجدد عضویت
+        localStorage.removeItem('app_token');
+        localStorage.removeItem('app_user');
+        
         try {
           const response = await api.post(endpoint, {
             [idField]: tgUser.id.toString(),
@@ -58,7 +63,8 @@ function App() {
           
           // بررسی اینکه آیا خطا به دلیل عدم عضویت در کانال است
           if (error.response?.data?.message?.includes('دسترسی ندارید') || 
-              error.response?.data?.message?.includes('عضو کانال')) {
+              error.response?.data?.message?.includes('عضو کانال') ||
+              error.response?.data?.message?.includes('رابطین')) {
             setAccessDenied(true);
           } else {
             WebApp.showAlert(`خطا در احراز هویت: ${error.response?.data?.message || error.message}`);
