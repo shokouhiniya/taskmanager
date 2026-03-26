@@ -21,7 +21,7 @@ import { ActionLog } from './database/entities/action-log.entity';
     ConfigModule.forRoot(),
     TypeOrmModule.forRoot({
       type: 'sqljs',
-      location: '/app/data/incident_system.db',
+      location: 'incident_system.db',
       autoSave: true,
       entities: [User, Form, Category, Report, Action, ActionLog],
       synchronize: true,
