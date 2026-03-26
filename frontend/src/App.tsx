@@ -21,7 +21,7 @@ import ProtectedRoute from './components/ProtectedRoute';
 import api from './api/axios';
 
 function App() {
-  const [token, setToken] = useState<string | null>(localStorage.getItem('token'));
+  const [token, setToken] = useState<string | null>(localStorage.getItem('app_token'));
   const [user, setUser] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [isTelegramWebApp, setIsTelegramWebApp] = useState(false);
@@ -85,7 +85,7 @@ function App() {
       }
     } else {
       // حالت عادی (بدون Telegram)
-      const savedUser = localStorage.getItem('user');
+      const savedUser = localStorage.getItem('app_user');
       if (savedUser) {
         setUser(JSON.parse(savedUser));
       }
@@ -95,27 +95,27 @@ function App() {
   };
 
   const handleLogin = (token: string, user: any) => {
-    localStorage.setItem('token', token);
-    localStorage.setItem('user', JSON.stringify(user));
+    localStorage.setItem('app_token', token);
+    localStorage.setItem('app_user', JSON.stringify(user));
     setToken(token);
     setUser(user);
   };
 
   const handleRegistrationComplete = () => {
     // بروزرسانی اطلاعات کاربر
-    const savedUser = localStorage.getItem('user');
+    const savedUser = localStorage.getItem('app_user');
     if (savedUser) {
       const updatedUser = JSON.parse(savedUser);
       updatedUser.isRegistered = true;
       updatedUser.status = 'pending';
-      localStorage.setItem('user', JSON.stringify(updatedUser));
+      localStorage.setItem('app_user', JSON.stringify(updatedUser));
       setUser(updatedUser);
     }
   };
 
   const handleLogout = () => {
-    localStorage.removeItem('token');
-    localStorage.removeItem('user');
+    localStorage.removeItem('app_token');
+    localStorage.removeItem('app_user');
     setToken(null);
     setUser(null);
     

@@ -10,7 +10,7 @@ const api = axios.create({
 // Interceptor برای اضافه کردن token به هر request
 api.interceptors.request.use(
   (config) => {
-    const token = localStorage.getItem('token');
+    const token = localStorage.getItem('app_token');
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
@@ -26,8 +26,8 @@ api.interceptors.response.use(
   (response) => response,
   (error) => {
     if (error.response?.status === 401) {
-      localStorage.removeItem('token');
-      localStorage.removeItem('user');
+      localStorage.removeItem('app_token');
+      localStorage.removeItem('app_user');
       window.location.href = '/';
     }
     return Promise.reject(error);
