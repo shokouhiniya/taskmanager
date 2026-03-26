@@ -56,4 +56,23 @@ export class AuthController {
       throw error;
     }
   }
+
+  @Post('complete-registration')
+  @UseGuards(JwtAuthGuard)
+  async completeRegistration(
+    @Request() req,
+    @Body() body: { 
+      name: string; 
+      lastName: string; 
+      nationalId: string; 
+      phone: string;
+    }
+  ) {
+    try {
+      return await this.authService.completeRegistration(req.user.userId, body);
+    } catch (error) {
+      console.error('❌ Registration error:', error.message);
+      throw error;
+    }
+  }
 }

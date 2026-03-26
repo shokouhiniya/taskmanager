@@ -12,6 +12,16 @@ export class UsersController {
     return this.usersService.findAll();
   }
 
+  @Get('pending')
+  findPending() {
+    return this.usersService.findPending();
+  }
+
+  @Get('approved')
+  findApproved() {
+    return this.usersService.findApproved();
+  }
+
   @Post()
   async create(@Body() body: { username: string; password: string; phone: string; name: string; role: string }) {
     try {
@@ -29,6 +39,16 @@ export class UsersController {
   @Put(':id/role')
   updateRole(@Param('id') id: string, @Body() body: { role: string }) {
     return this.usersService.updateRole(id, body.role);
+  }
+
+  @Put(':id/approve')
+  approveUser(@Param('id') id: string, @Body() body: { role?: string }) {
+    return this.usersService.approveUser(id, body.role);
+  }
+
+  @Put(':id/reject')
+  rejectUser(@Param('id') id: string) {
+    return this.usersService.rejectUser(id);
   }
 
   @Delete(':id')

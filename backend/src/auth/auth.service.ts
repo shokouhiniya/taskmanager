@@ -115,7 +115,7 @@ export class AuthService {
     let user = await this.userRepository.findOne({ where: { baleId } });
     
     if (!user) {
-      // ایجاد کاربر جدید با Bale ID
+      // ایجاد کاربر جدید با Bale ID - وضعیت pending و ثبت نام نشده
       const name = `${firstName}${lastName ? ' ' + lastName : ''}`;
       const randomPassword = Math.random().toString(36).slice(-8);
       const hashedPassword = await bcrypt.hash(randomPassword, 10);
@@ -127,15 +127,15 @@ export class AuthService {
         phone: baleId,
         name,
         role: 'reporter',
+        status: 'pending',
+        isRegistered: false,
       });
       
       try {
         user = await this.userRepository.save(user);
       } catch (error) {
-        // اگر کاربر با این baleId وجود داره ولی password نداره
         user = await this.userRepository.findOne({ where: { baleId } });
         if (user && !user.password) {
-          // آپدیت کردن password
           user.password = hashedPassword;
           user.name = name;
           if (username) user.username = username;
@@ -145,7 +145,6 @@ export class AuthService {
         }
       }
     } else if (!user.password) {
-      // اگر کاربر وجود داره ولی password نداره، یکی بهش بدیم
       const randomPassword = Math.random().toString(36).slice(-8);
       const hashedPassword = await bcrypt.hash(randomPassword, 10);
       user.password = hashedPassword;
@@ -160,8 +159,54 @@ export class AuthService {
         username: user.username,
         phone: user.phone,
         name: user.name,
+        lastName: user.lastName,
+        nationalId: user.nationalId,
         role: user.role,
+        status: user.status,
+        isRegistered: user.isRegistered,
         baleId: user.baleId,
+      },
+    };
+  }
+
+  async completeRegistration(userId: string, data: { name: string; lastName: string; nationalId: string; phone: string }) {
+    const user = await this.userRepository.findOne({ where: { id: userId } });
+    
+    if (!user) {
+      throw new Error('کاربر یافت نشد');
+    }
+
+    // بررسی تکراری نبودن کد ملی
+    if (data.nationalId) {
+      const existingUser = await this.userRepository.findOne({ 
+        where: { nationalId: data.nationalId } 
+      });
+      if (existingUser && existingUser.id !== userId) {
+        throw new Error('این کد ملی قبلاً ثبت شده است');
+      }
+    }
+
+    // بروزرسانی اطلاعات کاربر
+    user.name = data.name;
+    user.lastName = data.lastName;
+    user.nationalId = data.nationalId;
+    user.phone = data.phone;
+    user.isRegistered = true;
+    user.status = 'pending'; // در انتظار تایید ادمین
+
+    await this.userRepository.save(user);
+
+    return {
+      message: 'اطلاعات شما با موفقیت ثبت شد و در انتظار تایید مدیر است',
+      user: {
+        id: user.id,
+        name: user.name,
+        lastName: user.lastName,
+        nationalId: user.nationalId,
+        phone: user.phone,
+        role: user.role,
+        status: user.status,
+        isRegistered: user.isRegistered,
       },
     };
   }

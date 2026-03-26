@@ -7,6 +7,12 @@ export enum UserRole {
   ADMIN = 'admin'
 }
 
+export enum UserStatus {
+  PENDING = 'pending',      // در انتظار تایید
+  APPROVED = 'approved',    // تایید شده
+  REJECTED = 'rejected'     // رد شده
+}
+
 @Entity('users')
 export class User {
   @PrimaryGeneratedColumn('uuid')
@@ -30,8 +36,20 @@ export class User {
   @Column({ nullable: true })
   name: string;
 
+  @Column({ nullable: true })
+  lastName: string;
+
+  @Column({ nullable: true, unique: true })
+  nationalId: string;
+
   @Column({ default: 'reporter' })
   role: string;
+
+  @Column({ default: 'pending' })
+  status: string;
+
+  @Column({ default: false })
+  isRegistered: boolean;
 
   @CreateDateColumn()
   createdAt: Date;

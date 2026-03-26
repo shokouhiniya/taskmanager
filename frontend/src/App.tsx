@@ -2,6 +2,7 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 import WebApp from '@twa-dev/sdk';
 import Login from './pages/Login';
+import Registration from './pages/Registration';
 import Dashboard from './pages/Dashboard';
 import ReportList from './pages/ReportList';
 import CreateReport from './pages/CreateReport';
@@ -9,6 +10,7 @@ import ActionList from './pages/ActionList';
 import FormBuilder from './pages/FormBuilder';
 import CreateAction from './pages/CreateAction';
 import UserManagement from './pages/UserManagement';
+import PendingUsers from './pages/PendingUsers';
 import ChangePassword from './pages/ChangePassword';
 import AssignedReports from './pages/AssignedReports';
 import MyActions from './pages/MyActions';
@@ -98,6 +100,18 @@ function App() {
     setUser(user);
   };
 
+  const handleRegistrationComplete = () => {
+    // بروزرسانی اطلاعات کاربر
+    const savedUser = localStorage.getItem('user');
+    if (savedUser) {
+      const updatedUser = JSON.parse(savedUser);
+      updatedUser.isRegistered = true;
+      updatedUser.status = 'pending';
+      localStorage.setItem('user', JSON.stringify(updatedUser));
+      setUser(updatedUser);
+    }
+  };
+
   const handleLogout = () => {
     localStorage.removeItem('token');
     localStorage.removeItem('user');
@@ -159,55 +173,68 @@ function App() {
       <div style={{ minHeight: '100vh', paddingBottom: isTelegramWebApp ? '70px' : '0' }}>
         {!isTelegramWebApp && <Navbar user={user} onLogout={handleLogout} />}
         <div style={{ paddingTop: isTelegramWebApp ? '0' : '0' }}>
-          <Routes>
-            <Route path="/" element={<Dashboard user={user} isTelegramWebApp={isTelegramWebApp} />} />
-            <Route path="/reports" element={<ReportList user={user} />} />
-            <Route path="/reports/create" element={<CreateReport />} />
-            <Route path="/reports/assigned" element={<AssignedReports />} />
-            <Route path="/actions/my" element={<MyActions />} />
-            <Route 
-              path="/actions" 
-              element={
-                <ProtectedRoute allowedRoles={['operator', 'admin']}>
-                  <ActionList />
-                </ProtectedRoute>
-              } 
-            />
-            <Route 
-              path="/actions/create" 
-              element={
-                <ProtectedRoute allowedRoles={['operator', 'admin']}>
-                  <CreateAction />
-                </ProtectedRoute>
-              } 
-            />
-            <Route 
-              path="/forms" 
-              element={
-                <ProtectedRoute allowedRoles={['admin']}>
-                  <FormBuilder />
-                </ProtectedRoute>
-              } 
-            />
-            <Route 
-              path="/categories" 
-              element={
-                <ProtectedRoute allowedRoles={['admin']}>
-                  <CategoryManagement />
-                </ProtectedRoute>
-              } 
-            />
-            <Route 
-              path="/users" 
-              element={
-                <ProtectedRoute allowedRoles={['admin']}>
-                  <UserManagement />
-                </ProtectedRoute>
-              } 
-            />
-            <Route path="/change-password" element={<ChangePassword />} />
-            <Route path="*" element={<Navigate to="/" />} />
-          </Routes>
+          {/* اگر کاربر ثبت نام نکرده، به صفحه ثبت نام هدایت شود */}
+          {token && user && !user.isRegistered && isTelegramWebApp ? (
+            <Registration user={user} onRegistrationComplete={handleRegistrationComplete} />
+          ) : (
+            <Routes>
+              <Route path="/" element={<Dashboard user={user} isTelegramWebApp={isTelegramWebApp} />} />
+              <Route path="/reports" element={<ReportList user={user} />} />
+              <Route path="/reports/create" element={<CreateReport />} />
+              <Route path="/reports/assigned" element={<AssignedReports />} />
+              <Route path="/actions/my" element={<MyActions />} />
+              <Route 
+                path="/actions" 
+                element={
+                  <ProtectedRoute allowedRoles={['operator', 'admin']}>
+                    <ActionList />
+                  </ProtectedRoute>
+                } 
+              />
+              <Route 
+                path="/actions/create" 
+                element={
+                  <ProtectedRoute allowedRoles={['operator', 'admin']}>
+                    <CreateAction />
+                  </ProtectedRoute>
+                } 
+              />
+              <Route 
+                path="/forms" 
+                element={
+                  <ProtectedRoute allowedRoles={['admin']}>
+                    <FormBuilder />
+                  </ProtectedRoute>
+                } 
+              />
+              <Route 
+                path="/categories" 
+                element={
+                  <ProtectedRoute allowedRoles={['admin']}>
+                    <CategoryManagement />
+                  </ProtectedRoute>
+                } 
+              />
+              <Route 
+                path="/users" 
+                element={
+                  <ProtectedRoute allowedRoles={['admin']}>
+                    <UserManagement />
+                  </ProtectedRoute>
+                } 
+              />
+              <Route 
+                path="/users/pending" 
+                element={
+                  <ProtectedRoute allowedRoles={['admin']}>
+                    <PendingUsers />
+                  </ProtectedRoute>
+                } 
+              />
+              <Route path="/change-password" element={<ChangePassword />} />
+              <Route path="*" element={<Navigate to="/" />} />
+            </Routes>
+          )}
         </div>
         {isTelegramWebApp && <TelegramNav user={user} />}
       </div>

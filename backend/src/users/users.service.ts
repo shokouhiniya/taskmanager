@@ -13,8 +13,52 @@ export class UsersService {
 
   async findAll() {
     return this.userRepository.find({
-      select: ['id', 'username', 'phone', 'name', 'role', 'createdAt'],
+      select: ['id', 'username', 'phone', 'name', 'lastName', 'nationalId', 'role', 'status', 'isRegistered', 'createdAt', 'baleId', 'telegramId'],
       order: { createdAt: 'DESC' },
+    });
+  }
+
+  async findPending() {
+    return this.userRepository.find({
+      where: { status: 'pending', isRegistered: true },
+      select: ['id', 'username', 'phone', 'name', 'lastName', 'nationalId', 'role', 'status', 'createdAt', 'baleId'],
+      order: { createdAt: 'DESC' },
+    });
+  }
+
+  async findApproved() {
+    return this.userRepository.find({
+      where: { status: 'approved' },
+      select: ['id', 'username', 'phone', 'name', 'lastName', 'nationalId', 'role', 'status', 'createdAt', 'baleId'],
+      order: { createdAt: 'DESC' },
+    });
+  }
+
+  async approveUser(id: string, role?: string) {
+    const user = await this.userRepository.findOne({ where: { id } });
+    if (!user) {
+      throw new Error('کاربر یافت نشد');
+    }
+
+    const updateData: any = { status: 'approved' };
+    if (role) {
+      updateData.role = role;
+    }
+
+    await this.userRepository.update(id, updateData);
+    
+    return this.userRepository.findOne({ 
+      where: { id },
+      select: ['id', 'username', 'phone', 'name', 'lastName', 'nationalId', 'role', 'status']
+    });
+  }
+
+  async rejectUser(id: string) {
+    await this.userRepository.update(id, { status: 'rejected' });
+    
+    return this.userRepository.findOne({ 
+      where: { id },
+      select: ['id', 'username', 'phone', 'name', 'lastName', 'nationalId', 'role', 'status']
     });
   }
 
