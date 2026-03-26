@@ -4,7 +4,6 @@ import { useNavigate } from 'react-router-dom';
 
 export default function UserManagement() {
   const [users, setUsers] = useState([]);
-  const [pendingCount, setPendingCount] = useState(0);
   const [showForm, setShowForm] = useState(false);
   const [editingUser, setEditingUser] = useState<any>(null);
   const [formData, setFormData] = useState({
@@ -18,22 +17,12 @@ export default function UserManagement() {
 
   useEffect(() => {
     fetchUsers();
-    fetchPendingCount();
   }, []);
 
   const fetchUsers = async () => {
     try {
       const response = await api.get('/users');
       setUsers(response.data);
-    } catch (error) {
-      console.error('Error:', error);
-    }
-  };
-
-  const fetchPendingCount = async () => {
-    try {
-      const response = await api.get('/users/pending');
-      setPendingCount(response.data.length);
     } catch (error) {
       console.error('Error:', error);
     }
@@ -124,41 +113,6 @@ export default function UserManagement() {
     <div className="container">
       <div className="page-header" style={{ flexDirection: 'column', gap: '0.75rem', alignItems: 'stretch' }}>
         <h1 className="page-title" style={{ fontSize: '18px' }}>👥 مدیریت کاربران</h1>
-        
-        {pendingCount > 0 && (
-          <div 
-            onClick={() => navigate('/users/pending')}
-            style={{
-              padding: '0.875rem',
-              background: 'linear-gradient(135deg, #ff9800 0%, #f57c00 100%)',
-              color: 'white',
-              borderRadius: '12px',
-              cursor: 'pointer',
-              display: 'flex',
-              justifyContent: 'space-between',
-              alignItems: 'center',
-              boxShadow: '0 4px 12px rgba(255, 152, 0, 0.3)'
-            }}
-          >
-            <div>
-              <div style={{ fontSize: '14px', fontWeight: 'bold', marginBottom: '0.25rem' }}>
-                ⏳ کاربران در انتظار تایید
-              </div>
-              <div style={{ fontSize: '12px', opacity: 0.9 }}>
-                برای مشاهده و تایید کلیک کنید
-              </div>
-            </div>
-            <div style={{
-              background: 'rgba(255, 255, 255, 0.3)',
-              padding: '0.5rem 0.875rem',
-              borderRadius: '20px',
-              fontSize: '16px',
-              fontWeight: 'bold'
-            }}>
-              {pendingCount}
-            </div>
-          </div>
-        )}
         
         <div style={{ display: 'flex', gap: '0.5rem' }}>
           <button onClick={() => setShowForm(!showForm)} className="success" style={{ flex: 1, fontSize: '13px', padding: '0.625rem 1rem' }}>

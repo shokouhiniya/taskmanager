@@ -2,7 +2,6 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 import WebApp from '@twa-dev/sdk';
 import Login from './pages/Login';
-import Registration from './pages/Registration';
 import Dashboard from './pages/Dashboard';
 import ReportList from './pages/ReportList';
 import CreateReport from './pages/CreateReport';
@@ -10,7 +9,6 @@ import ActionList from './pages/ActionList';
 import FormBuilder from './pages/FormBuilder';
 import CreateAction from './pages/CreateAction';
 import UserManagement from './pages/UserManagement';
-import PendingUsers from './pages/PendingUsers';
 import ChangePassword from './pages/ChangePassword';
 import AssignedReports from './pages/AssignedReports';
 import MyActions from './pages/MyActions';
@@ -25,6 +23,7 @@ function App() {
   const [user, setUser] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [isTelegramWebApp, setIsTelegramWebApp] = useState(false);
+  const [accessDenied, setAccessDenied] = useState(false);
 
   useEffect(() => {
     initializeApp();
@@ -61,7 +60,7 @@ function App() {
         
         console.log(`🚀 Attempting ${isBale ? 'Bale' : 'Telegram'} login...`);
         
-        // احراز هویت خودکار - همیشه از Backend اطلاعات جدید بگیر
+        // احراز هویت خودکار
         try {
           const response = await api.post(endpoint, {
             [idField]: tgUser.id.toString(),
@@ -76,7 +75,14 @@ function App() {
         } catch (error: any) {
           console.error(`❌ ${isBale ? 'Bale' : 'Telegram'} auth error:`, error);
           console.error('📋 Error details:', error.response?.data);
-          WebApp.showAlert(`خطا در احراز هویت: ${error.response?.data?.message || error.message}`);
+          
+          // بررسی اینکه آیا خطا به دلیل عدم عضویت در کانال است
+          if (error.response?.data?.message?.includes('دسترسی ندارید') || 
+              error.response?.data?.message?.includes('عضو کانال')) {
+            setAccessDenied(true);
+          } else {
+            WebApp.showAlert(`خطا در احراز هویت: ${error.response?.data?.message || error.message}`);
+          }
         }
       } else {
         console.error('❌ No user data found');
@@ -99,18 +105,6 @@ function App() {
     localStorage.setItem('app_user', JSON.stringify(user));
     setToken(token);
     setUser(user);
-  };
-
-  const handleRegistrationComplete = () => {
-    // بروزرسانی اطلاعات کاربر
-    const savedUser = localStorage.getItem('app_user');
-    if (savedUser) {
-      const updatedUser = JSON.parse(savedUser);
-      updatedUser.isRegistered = true;
-      updatedUser.status = 'pending';
-      localStorage.setItem('app_user', JSON.stringify(updatedUser));
-      setUser(updatedUser);
-    }
   };
 
   const handleLogout = () => {
@@ -136,6 +130,31 @@ function App() {
         <div style={{ textAlign: 'center', color: 'white' }}>
           <div style={{ fontSize: '48px', marginBottom: '1rem' }}>⏳</div>
           <p>در حال بارگذاری...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // نمایش پیام عدم دسترسی برای کاربران غیر عضو کانال
+  if (accessDenied && isTelegramWebApp) {
+    return (
+      <div style={{ 
+        display: 'flex', 
+        justifyContent: 'center', 
+        alignItems: 'center', 
+        minHeight: '100vh',
+        background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+        padding: '2rem'
+      }}>
+        <div className="card" style={{ textAlign: 'center', maxWidth: '400px' }}>
+          <div style={{ fontSize: '64px', marginBottom: '1rem' }}>🚫</div>
+          <h2 style={{ marginBottom: '1rem' }}>شما دسترسی ندارید</h2>
+          <p style={{ color: '#757575', marginBottom: '1rem' }}>
+            برای استفاده از این برنامه باید عضو کانال رابطین باشید
+          </p>
+          <button onClick={() => WebApp.close()} className="secondary">
+            بستن
+          </button>
         </div>
       </div>
     );
@@ -174,68 +193,55 @@ function App() {
       <div style={{ minHeight: '100vh', paddingBottom: isTelegramWebApp ? '70px' : '0' }}>
         {!isTelegramWebApp && <Navbar user={user} onLogout={handleLogout} />}
         <div style={{ paddingTop: isTelegramWebApp ? '0' : '0' }}>
-          {/* اگر کاربر ثبت نام نکرده، به صفحه ثبت نام هدایت شود */}
-          {token && user && user.isRegistered === false && isTelegramWebApp ? (
-            <Registration user={user} onRegistrationComplete={handleRegistrationComplete} />
-          ) : (
-            <Routes>
-              <Route path="/" element={<Dashboard user={user} isTelegramWebApp={isTelegramWebApp} />} />
-              <Route path="/reports" element={<ReportList user={user} />} />
-              <Route path="/reports/create" element={<CreateReport />} />
-              <Route path="/reports/assigned" element={<AssignedReports />} />
-              <Route path="/actions/my" element={<MyActions />} />
-              <Route 
-                path="/actions" 
-                element={
-                  <ProtectedRoute allowedRoles={['operator', 'admin']}>
-                    <ActionList />
-                  </ProtectedRoute>
-                } 
-              />
-              <Route 
-                path="/actions/create" 
-                element={
-                  <ProtectedRoute allowedRoles={['operator', 'admin']}>
-                    <CreateAction />
-                  </ProtectedRoute>
-                } 
-              />
-              <Route 
-                path="/forms" 
-                element={
-                  <ProtectedRoute allowedRoles={['admin']}>
-                    <FormBuilder />
-                  </ProtectedRoute>
-                } 
-              />
-              <Route 
-                path="/categories" 
-                element={
-                  <ProtectedRoute allowedRoles={['admin']}>
-                    <CategoryManagement />
-                  </ProtectedRoute>
-                } 
-              />
-              <Route 
-                path="/users" 
-                element={
-                  <ProtectedRoute allowedRoles={['admin']}>
-                    <UserManagement />
-                  </ProtectedRoute>
-                } 
-              />
-              <Route 
-                path="/users/pending" 
-                element={
-                  <ProtectedRoute allowedRoles={['admin']}>
-                    <PendingUsers />
-                  </ProtectedRoute>
-                } 
-              />
-              <Route path="/change-password" element={<ChangePassword />} />
-              <Route path="*" element={<Navigate to="/" />} />
-            </Routes>
-          )}
+          <Routes>
+            <Route path="/" element={<Dashboard user={user} isTelegramWebApp={isTelegramWebApp} />} />
+            <Route path="/reports" element={<ReportList user={user} />} />
+            <Route path="/reports/create" element={<CreateReport />} />
+            <Route path="/reports/assigned" element={<AssignedReports />} />
+            <Route path="/actions/my" element={<MyActions />} />
+            <Route 
+              path="/actions" 
+              element={
+                <ProtectedRoute allowedRoles={['operator', 'admin']}>
+                  <ActionList />
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="/actions/create" 
+              element={
+                <ProtectedRoute allowedRoles={['operator', 'admin']}>
+                  <CreateAction />
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="/forms" 
+              element={
+                <ProtectedRoute allowedRoles={['admin']}>
+                  <FormBuilder />
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="/categories" 
+              element={
+                <ProtectedRoute allowedRoles={['admin']}>
+                  <CategoryManagement />
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="/users" 
+              element={
+                <ProtectedRoute allowedRoles={['admin']}>
+                  <UserManagement />
+                </ProtectedRoute>
+              } 
+            />
+            <Route path="/change-password" element={<ChangePassword />} />
+            <Route path="*" element={<Navigate to="/" />} />
+          </Routes>
         </div>
         {isTelegramWebApp && <TelegramNav user={user} />}
       </div>

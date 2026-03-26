@@ -57,22 +57,10 @@ export class AuthController {
     }
   }
 
-  @Post('complete-registration')
-  @UseGuards(JwtAuthGuard)
-  async completeRegistration(
-    @Request() req,
-    @Body() body: { 
-      name: string; 
-      lastName: string; 
-      nationalId: string; 
-      phone: string;
-    }
-  ) {
-    try {
-      return await this.authService.completeRegistration(req.user.userId, body);
-    } catch (error) {
-      console.error('❌ Registration error:', error.message);
-      throw error;
-    }
+  @Post('test-membership')
+  async testMembership(@Body() body: { userId: string }) {
+    const telegramService = this.authService['telegramService'];
+    const isMember = await telegramService.testChannelMembership(body.userId);
+    return { userId: body.userId, isMember };
   }
 }
