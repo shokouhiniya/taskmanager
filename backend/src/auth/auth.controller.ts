@@ -61,6 +61,11 @@ export class AuthController {
   async testMembership(@Body() body: { userId: string }) {
     const telegramService = this.authService['telegramService'];
     const isMember = await telegramService.testChannelMembership(body.userId);
-    return { userId: body.userId, isMember };
+    return { 
+      userId: body.userId, 
+      isMember,
+      channelUsername: process.env.BALE_CHANNEL_USERNAME,
+      timestamp: new Date().toISOString()
+    };
   }
 }
