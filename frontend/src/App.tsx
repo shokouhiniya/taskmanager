@@ -61,7 +61,7 @@ function App() {
         
         console.log(`🚀 Attempting ${isBale ? 'Bale' : 'Telegram'} login...`);
         
-        // احراز هویت خودکار
+        // احراز هویت خودکار - همیشه از Backend اطلاعات جدید بگیر
         try {
           const response = await api.post(endpoint, {
             [idField]: tgUser.id.toString(),
@@ -71,6 +71,7 @@ function App() {
           });
           
           console.log('✅ Login successful:', response.data);
+          console.log('📋 User data:', response.data.user);
           handleLogin(response.data.access_token, response.data.user);
         } catch (error: any) {
           console.error(`❌ ${isBale ? 'Bale' : 'Telegram'} auth error:`, error);
@@ -174,7 +175,7 @@ function App() {
         {!isTelegramWebApp && <Navbar user={user} onLogout={handleLogout} />}
         <div style={{ paddingTop: isTelegramWebApp ? '0' : '0' }}>
           {/* اگر کاربر ثبت نام نکرده، به صفحه ثبت نام هدایت شود */}
-          {token && user && !user.isRegistered && isTelegramWebApp ? (
+          {token && user && user.isRegistered === false && isTelegramWebApp ? (
             <Registration user={user} onRegistrationComplete={handleRegistrationComplete} />
           ) : (
             <Routes>
