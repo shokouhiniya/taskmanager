@@ -1,6 +1,5 @@
 import { Injectable, OnModuleInit } from '@nestjs/common';
 import * as TelegramBot from 'node-telegram-bot-api';
-import axios from 'axios';
 
 @Injectable()
 export class TelegramService implements OnModuleInit {
@@ -32,34 +31,26 @@ export class TelegramService implements OnModuleInit {
   }
 
   async checkChannelMembership(userId: string): Promise<boolean> {
-    if (!this.baleToken) {
-      console.warn('⚠️ Cannot check channel membership: BALE_BOT_TOKEN not configured');
-      return true; // اگر توکن نیست، اجازه دسترسی بده
+    if (!this.bot || !this.baleToken) {
+      console.warn('⚠️ Cannot check channel membership: Bot not initialized');
+      return false; // اگر بات نیست، دسترسی نده
     }
 
     try {
-      const url = `${this.baleApiUrl}/bot${this.baleToken}/getChatMember`;
-      const response = await axios.get(url, {
-        params: {
-          chat_id: this.channelUsername,
-          user_id: userId
-        }
-      });
+      console.log(`🔍 Checking membership for user ${userId} in channel ${this.channelUsername}`);
+      
+      const member = await this.bot.getChatMember(this.channelUsername, userId);
+      
+      console.log('📋 Channel membership check response:', member);
 
-      console.log('📋 Channel membership check response:', response.data);
-
-      if (response.data.ok) {
-        const status = response.data.result.status;
-        // وضعیت‌های مجاز: creator, administrator, member
-        const isAllowed = ['creator', 'administrator', 'member'].includes(status);
-        console.log(`✅ User ${userId} membership status: ${status} - Allowed: ${isAllowed}`);
-        return isAllowed;
-      }
-
-      console.log(`❌ User ${userId} is not a member of channel`);
-      return false;
+      // وضعیت‌های مجاز: creator, administrator, member
+      const isAllowed = ['creator', 'administrator', 'member'].includes(member.status);
+      console.log(`✅ User ${userId} membership status: ${member.status} - Allowed: ${isAllowed}`);
+      
+      return isAllowed;
     } catch (error: any) {
-      console.error('❌ Error checking channel membership:', error.response?.data || error.message);
+      console.error('❌ Error checking channel membership:', error.message);
+      console.error('📋 Error details:', error);
       // در صورت خطا، اجازه دسترسی نده
       return false;
     }
