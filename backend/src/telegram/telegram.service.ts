@@ -39,7 +39,7 @@ export class TelegramService implements OnModuleInit {
     try {
       console.log(`🔍 Checking membership for user ${userId} in channel ${this.channelUsername}`);
       
-      const member = await this.bot.getChatMember(this.channelUsername, userId);
+      const member = await this.bot.getChatMember(this.channelUsername, parseInt(userId));
       
       console.log('📋 Channel membership check response:', member);
 
