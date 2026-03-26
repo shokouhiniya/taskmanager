@@ -1,119 +1,59 @@
 import { Link } from 'react-router-dom';
+import { IconFile, IconList, IconInbox, IconZap, IconPlus, IconGrid, IconUsers, IconFolder } from '../components/Icons';
 
 export default function Dashboard({ user, isTelegramWebApp }: { user: any; isTelegramWebApp?: boolean }) {
   const isReporter = user?.role === 'reporter';
-  const cardStyle = {
-    cursor: 'pointer', 
-    textAlign: 'center' as const,
-    border: '2px solid transparent',
-    transition: 'all 0.3s ease',
-    padding: isTelegramWebApp ? '1.5rem 1rem' : '1.5rem'
-  };
-  
-  const iconSize = isTelegramWebApp ? '40px' : '48px';
-  const titleSize = isTelegramWebApp ? '16px' : '18px';
-  
+
+  const MenuItem = ({ to, icon, title, desc, color }: { to: string; icon: React.ReactNode; title: string; desc: string; color: string }) => (
+    <Link to={to} style={{ textDecoration: 'none' }}>
+      <div className="card" style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', cursor: 'pointer' }}>
+        <div style={{
+          width: 40, height: 40, borderRadius: 10, background: color + '12',
+          display: 'flex', alignItems: 'center', justifyContent: 'center', color, flexShrink: 0,
+        }}>
+          {icon}
+        </div>
+        <div style={{ flex: 1 }}>
+          <div style={{ fontSize: 14, fontWeight: 600, color: 'var(--text-primary)', marginBottom: 2 }}>{title}</div>
+          <div style={{ fontSize: 12, color: 'var(--text-tertiary)' }}>{desc}</div>
+        </div>
+        <svg width="16" height="16" fill="none" stroke="var(--text-tertiary)" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24" style={{ transform: 'scaleX(-1)' }}><path d="M9 18l6-6-6-6"/></svg>
+      </div>
+    </Link>
+  );
+
   return (
     <div className="container">
-      {!isTelegramWebApp && (
-        <div className="page-header">
-          <h1 className="page-title">🏠 داشبورد</h1>
-        </div>
-      )}
-      
-      {isTelegramWebApp && (
-        <div style={{ 
-          background: 'rgba(255, 255, 255, 0.98)',
-          backdropFilter: 'blur(20px)',
-          padding: '1.25rem',
-          marginBottom: '1rem',
-          borderRadius: '16px',
-          boxShadow: '0 2px 12px rgba(0, 0, 0, 0.08)',
-        }}>
-          <h1 style={{ fontSize: '22px', fontWeight: 700, color: '#212121', margin: 0 }}>
-            👋 سلام {user?.name || user?.username}
-          </h1>
-          <p style={{ fontSize: '13px', color: '#757575', marginTop: '0.5rem', marginBottom: 0 }}>
-            {user?.role === 'admin' ? '🔑 مدیر سیستم' : user?.role === 'operator' ? '⚙️ کارشناس' : '👤 کاربر'}
-          </p>
-        </div>
-      )}
-      
-      <div className="grid grid-3" style={{ gap: isTelegramWebApp ? '0.75rem' : '1rem' }}>
-        <Link to="/reports/create" style={{ textDecoration: 'none' }}>
-          <div className="card" style={cardStyle}>
-            <div style={{ fontSize: iconSize, marginBottom: '0.75rem' }}>📝</div>
-            <h3 style={{ color: '#212121', marginBottom: '0.5rem', fontSize: titleSize }}>ثبت خبر جدید</h3>
-            <p style={{ color: '#757575', fontSize: '13px' }}>گزارش رخداد جدید</p>
-          </div>
-        </Link>
+      <div style={{ marginBottom: '1.25rem' }}>
+        <h1 style={{ fontSize: 18, fontWeight: 700, marginBottom: 4 }}>سلام، {user?.name || user?.username}</h1>
+        <p style={{ fontSize: 13, color: 'var(--text-tertiary)' }}>
+          {user?.role === 'admin' ? 'مدیر سیستم' : user?.role === 'operator' ? 'کارشناس' : 'کاربر'}
+        </p>
+      </div>
 
-        <Link to="/reports" style={{ textDecoration: 'none' }}>
-          <div className="card" style={cardStyle}>
-            <div style={{ fontSize: iconSize, marginBottom: '0.75rem' }}>📊</div>
-            <h3 style={{ color: '#212121', marginBottom: '0.5rem', fontSize: titleSize }}>
-              {isReporter ? 'خبرهای من' : 'همه خبرها'}
-            </h3>
-            <p style={{ color: '#757575', fontSize: '13px' }}>
-              {isReporter ? 'خبرهای ثبت شده' : 'مدیریت خبرها'}
-            </p>
-          </div>
-        </Link>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 0 }}>
+        <MenuItem to="/reports/create" icon={<IconPlus />} title="ثبت خبر جدید" desc="گزارش رخداد جدید" color="#4f46e5" />
+        <MenuItem to="/reports" icon={isReporter ? <IconFile /> : <IconList />} title={isReporter ? 'خبرهای من' : 'همه خبرها'} desc={isReporter ? 'خبرهای ثبت شده' : 'مدیریت خبرها'} color="#2563eb" />
 
         {isReporter && (
           <>
-            <Link to="/reports/assigned" style={{ textDecoration: 'none' }}>
-              <div className="card" style={cardStyle}>
-                <div style={{ fontSize: iconSize, marginBottom: '0.75rem' }}>📬</div>
-                <h3 style={{ color: '#212121', marginBottom: '0.5rem', fontSize: titleSize }}>خبرهای ارجاع شده</h3>
-                <p style={{ color: '#757575', fontSize: '13px' }}>خبرهای محول شده به من</p>
-              </div>
-            </Link>
-            <Link to="/actions/my" style={{ textDecoration: 'none' }}>
-              <div className="card" style={cardStyle}>
-                <div style={{ fontSize: iconSize, marginBottom: '0.75rem' }}>⚡</div>
-                <h3 style={{ color: '#212121', marginBottom: '0.5rem', fontSize: titleSize }}>اقدامات من</h3>
-                <p style={{ color: '#757575', fontSize: '13px' }}>اقدامات محول شده</p>
-              </div>
-            </Link>
+            <MenuItem to="/reports/assigned" icon={<IconInbox />} title="خبرهای ارجاع شده" desc="خبرهای محول شده به من" color="#d97706" />
+            <MenuItem to="/actions/my" icon={<IconZap />} title="اقدامات من" desc="اقدامات محول شده" color="#059669" />
           </>
         )}
 
         {(user?.role === 'operator' || user?.role === 'admin') && (
           <>
-            <Link to="/actions" style={{ textDecoration: 'none' }}>
-              <div className="card" style={cardStyle}>
-                <div style={{ fontSize: iconSize, marginBottom: '0.75rem' }}>⚡</div>
-                <h3 style={{ color: '#212121', marginBottom: '0.5rem', fontSize: titleSize }}>مدیریت اقدامات</h3>
-                <p style={{ color: '#757575', fontSize: '13px' }}>پیگیری و ثبت اقدام</p>
-              </div>
-            </Link>
-            <Link to="/actions/create" style={{ textDecoration: 'none' }}>
-              <div className="card" style={cardStyle}>
-                <div style={{ fontSize: iconSize, marginBottom: '0.75rem' }}>➕</div>
-                <h3 style={{ color: '#212121', marginBottom: '0.5rem', fontSize: titleSize }}>ایجاد اقدام</h3>
-                <p style={{ color: '#757575', fontSize: '13px' }}>تعریف اقدام برای خبرها</p>
-              </div>
-            </Link>
+            <MenuItem to="/actions" icon={<IconZap />} title="مدیریت اقدامات" desc="پیگیری و ثبت اقدام" color="#059669" />
+            <MenuItem to="/actions/create" icon={<IconPlus />} title="ایجاد اقدام" desc="تعریف اقدام برای خبرها" color="#7c3aed" />
           </>
         )}
 
         {user?.role === 'admin' && (
           <>
-            <Link to="/forms" style={{ textDecoration: 'none' }}>
-              <div className="card" style={cardStyle}>
-                <div style={{ fontSize: iconSize, marginBottom: '0.75rem' }}>🎨</div>
-                <h3 style={{ color: '#212121', marginBottom: '0.5rem', fontSize: titleSize }}>فرم‌ساز</h3>
-                <p style={{ color: '#757575', fontSize: '13px' }}>طراحی فرم‌های خبر</p>
-              </div>
-            </Link>
-            <Link to="/users" style={{ textDecoration: 'none' }}>
-              <div className="card" style={cardStyle}>
-                <div style={{ fontSize: iconSize, marginBottom: '0.75rem' }}>👥</div>
-                <h3 style={{ color: '#212121', marginBottom: '0.5rem', fontSize: titleSize }}>مدیریت کاربران</h3>
-                <p style={{ color: '#757575', fontSize: '13px' }}>افزودن و مدیریت کاربران</p>
-              </div>
-            </Link>
+            <MenuItem to="/forms" icon={<IconGrid />} title="فرم‌ساز" desc="طراحی فرم‌های خبر" color="#ec4899" />
+            <MenuItem to="/categories" icon={<IconFolder />} title="دسته‌بندی‌ها" desc="مدیریت دسته‌بندی‌ها" color="#f59e0b" />
+            <MenuItem to="/users" icon={<IconUsers />} title="مدیریت کاربران" desc="افزودن و مدیریت کاربران" color="#6366f1" />
           </>
         )}
       </div>

@@ -1,132 +1,72 @@
 import { useState, useEffect } from 'react';
 import api from '../api/axios';
-import { useNavigate } from 'react-router-dom';
+import { IconPlus, IconTrash, IconFolder } from '../components/Icons';
 
 export default function CategoryManagement() {
   const [categories, setCategories] = useState([]);
   const [showForm, setShowForm] = useState(false);
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
-  const navigate = useNavigate();
 
-  useEffect(() => {
-    fetchCategories();
-  }, []);
-
-  const fetchCategories = async () => {
-    try {
-      const response = await api.get('/categories');
-      setCategories(response.data);
-    } catch (error) {
-      console.error('Error:', error);
-    }
-  };
+  useEffect(() => { fetchCategories(); }, []);
+  const fetchCategories = async () => { try { setCategories((await api.get('/categories')).data); } catch (e) { console.error(e); } };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
       await api.post('/categories', { name, description });
-      alert('✅ دسته‌بندی ایجاد شد');
-      setName('');
-      setDescription('');
-      setShowForm(false);
-      fetchCategories();
-    } catch (error) {
-      alert('❌ خطا در ایجاد دسته‌بندی');
-    }
+      setName(''); setDescription(''); setShowForm(false); fetchCategories();
+    } catch { alert('خطا'); }
   };
 
   const handleDelete = async (id: string) => {
-    if (!confirm('آیا از حذف این دسته‌بندی اطمینان دارید؟')) return;
-    
-    try {
-      await api.delete(`/categories/${id}`);
-      alert('✅ دسته‌بندی حذف شد');
-      fetchCategories();
-    } catch (error) {
-      alert('❌ خطا در حذف دسته‌بندی');
-    }
+    if (!confirm('حذف شود؟')) return;
+    try { await api.delete(`/categories/${id}`); fetchCategories(); } catch { alert('خطا'); }
   };
 
   return (
     <div className="container">
-      <div className="page-header" style={{ flexDirection: 'column', gap: '0.75rem', alignItems: 'stretch' }}>
-        <h1 className="page-title" style={{ fontSize: '18px' }}>📁 مدیریت دسته‌بندی‌ها</h1>
-        <div style={{ display: 'flex', gap: '0.5rem' }}>
-          <button onClick={() => setShowForm(!showForm)} className="success" style={{ flex: 1, fontSize: '13px', padding: '0.625rem 1rem' }}>
-            {showForm ? '❌ انصراف' : '➕ جدید'}
-          </button>
-          <button onClick={() => navigate('/')} className="secondary" style={{ fontSize: '13px', padding: '0.625rem 1rem' }}>
-            🏠
-          </button>
-        </div>
+      <div className="page-header">
+        <h1 className="page-title">دسته‌بندی‌ها</h1>
+        <button onClick={() => setShowForm(!showForm)} style={{ fontSize: 12, padding: '0.375rem 0.75rem' }}>
+          {showForm ? 'انصراف' : <><IconPlus /> جدید</>}
+        </button>
       </div>
 
       {showForm && (
-        <div className="card" style={{ marginBottom: '2rem' }}>
-          <h3 style={{ marginBottom: '1.5rem', fontSize: '16px', color: '#212121' }}>ایجاد دسته‌بندی جدید</h3>
+        <div className="card" style={{ padding: '1.25rem', marginBottom: 16 }}>
+          <div style={{ fontSize: 14, fontWeight: 600, marginBottom: 12 }}>دسته‌بندی جدید</div>
           <form onSubmit={handleSubmit}>
             <div className="field-group">
-              <label>نام دسته‌بندی</label>
-              <input
-                type="text"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                placeholder="مثال: فنی"
-                required
-              />
+              <label>نام</label>
+              <input type="text" value={name} onChange={(e) => setName(e.target.value)} placeholder="نام دسته‌بندی" required />
             </div>
-
             <div className="field-group">
               <label>توضیحات</label>
-              <textarea
-                value={description}
-                onChange={(e) => setDescription(e.target.value)}
-                placeholder="توضیحات دسته‌بندی..."
-                rows={3}
-              />
+              <textarea value={description} onChange={(e) => setDescription(e.target.value)} placeholder="توضیحات" rows={2} />
             </div>
-
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', marginTop: '1.5rem' }}>
-              <button type="submit" className="success" style={{ width: '100%' }}>
-                ✅ ایجاد دسته‌بندی
-              </button>
-              <button type="button" onClick={() => setShowForm(false)} className="secondary" style={{ width: '100%' }}>
-                ❌ انصراف
-              </button>
+            <div style={{ display: 'flex', gap: 8 }}>
+              <button type="submit" className="success" style={{ flex: 1 }}>ایجاد</button>
+              <button type="button" onClick={() => setShowForm(false)} className="secondary" style={{ flex: 1 }}>انصراف</button>
             </div>
           </form>
         </div>
       )}
 
-      <h2 style={{ margin: '2rem 0 1rem', fontSize: '18px', color: '#212121' }}>📋 دسته‌بندی‌های موجود</h2>
-      
       {categories.length === 0 ? (
-        <div className="card" style={{ textAlign: 'center', padding: '2rem' }}>
-          <div style={{ fontSize: '48px', marginBottom: '1rem' }}>📭</div>
-          <p style={{ color: '#757575', fontSize: '14px' }}>هیچ دسته‌بندی وجود ندارد</p>
+        <div className="card empty-state"><p>دسته‌بندی‌ای نیست</p></div>
+      ) : categories.map((c: any) => (
+        <div key={c.id} className="card" style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+          <div style={{ width: 36, height: 36, borderRadius: 8, background: 'var(--warning-light)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--warning)', flexShrink: 0 }}>
+            <IconFolder />
+          </div>
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <div style={{ fontSize: 13, fontWeight: 600 }}>{c.name}</div>
+            {c.description && <div style={{ fontSize: 11, color: 'var(--text-tertiary)' }}>{c.description}</div>}
+          </div>
+          <button onClick={() => handleDelete(c.id)} className="ghost" style={{ padding: 6, color: 'var(--danger)' }}><IconTrash /></button>
         </div>
-      ) : (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-          {categories.map((category: any) => (
-            <div key={category.id} className="card">
-              <div style={{ marginBottom: '0.75rem' }}>
-                <h3 style={{ marginBottom: '0.5rem', color: '#212121', fontSize: '15px' }}>📁 {category.name}</h3>
-                {category.description && (
-                  <p style={{ fontSize: '13px', color: '#757575' }}>{category.description}</p>
-                )}
-              </div>
-              <button 
-                onClick={() => handleDelete(category.id)}
-                className="danger"
-                style={{ fontSize: '12px', padding: '0.5rem 0.875rem', width: '100%' }}
-              >
-                🗑️ حذف دسته‌بندی
-              </button>
-            </div>
-          ))}
-        </div>
-      )}
+      ))}
     </div>
   );
 }

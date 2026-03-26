@@ -25,48 +25,28 @@ function App() {
   const [isTelegramWebApp, setIsTelegramWebApp] = useState(false);
   const [accessDenied, setAccessDenied] = useState(false);
 
-  useEffect(() => {
-    initializeApp();
-  }, []);
+  useEffect(() => { initializeApp(); }, []);
 
   const initializeApp = async () => {
-    // بررسی اینکه آیا در Telegram WebApp هستیم
     const isTg = WebApp.platform !== 'unknown';
     setIsTelegramWebApp(isTg);
 
     if (isTg) {
       WebApp.ready();
       WebApp.expand();
-      
-      // اضافه کردن کلاس به body
       document.body.classList.add('telegram-webapp');
-      
-      // تنظیم رنگ‌های Telegram
-      WebApp.setHeaderColor('#7c3aed');
-      WebApp.setBackgroundColor('#7c3aed');
+      WebApp.setHeaderColor('#4f46e5');
+      WebApp.setBackgroundColor('#f0f2f5');
 
       const tgUser = WebApp.initDataUnsafe?.user;
-      
-      console.log('🔍 Telegram/Bale WebApp detected');
-      console.log('📱 Platform:', WebApp.platform);
-      console.log('👤 User:', tgUser);
-      console.log('🔐 Init Data:', WebApp.initData);
-      
       if (tgUser) {
-        // تشخیص Telegram یا Bale
         const isBale = window.location.hostname.includes('bale') || WebApp.platform === 'bale';
         const endpoint = isBale ? '/auth/bale' : '/auth/telegram';
         const idField = isBale ? 'baleId' : 'telegramId';
-        
-        console.log(`🚀 Attempting ${isBale ? 'Bale' : 'Telegram'} login...`);
-        
-        // احراز هویت خودکار
         try {
           const response = await api.post(endpoint, {
             [idField]: tgUser.id.toString(),
-            firstName: tgUser.first_name,
-            lastName: tgUser.last_name,
-            username: tgUser.username,
+            firstName: tgUser.first_name, lastName: tgUser.last_name, username: tgUser.username,
           });
           
           console.log('✅ Login successful:', response.data);
@@ -84,52 +64,33 @@ function App() {
             WebApp.showAlert(`خطا در احراز هویت: ${error.response?.data?.message || error.message}`);
           }
         }
-      } else {
-        console.error('❌ No user data found');
-        console.error('📋 initDataUnsafe:', WebApp.initDataUnsafe);
-        WebApp.showAlert('اطلاعات کاربر یافت نشد. لطفاً از طریق ربات وارد شوید.');
       }
     } else {
-      // حالت عادی (بدون Telegram)
       const savedUser = localStorage.getItem('app_user');
-      if (savedUser) {
-        setUser(JSON.parse(savedUser));
-      }
+      if (savedUser) setUser(JSON.parse(savedUser));
     }
-    
     setLoading(false);
   };
 
   const handleLogin = (token: string, user: any) => {
     localStorage.setItem('app_token', token);
     localStorage.setItem('app_user', JSON.stringify(user));
-    setToken(token);
-    setUser(user);
+    setToken(token); setUser(user);
   };
 
   const handleLogout = () => {
-    localStorage.removeItem('app_token');
-    localStorage.removeItem('app_user');
-    setToken(null);
-    setUser(null);
-    
-    if (isTelegramWebApp) {
-      WebApp.close();
-    }
+    localStorage.removeItem('app_token'); localStorage.removeItem('app_user');
+    setToken(null); setUser(null);
+    if (isTelegramWebApp) WebApp.close();
   };
 
   if (loading) {
     return (
-      <div style={{ 
-        display: 'flex', 
-        justifyContent: 'center', 
-        alignItems: 'center', 
-        minHeight: '100vh',
-        background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)'
-      }}>
-        <div style={{ textAlign: 'center', color: 'white' }}>
-          <div style={{ fontSize: '48px', marginBottom: '1rem' }}>⏳</div>
-          <p>در حال بارگذاری...</p>
+      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '100vh' }}>
+        <div style={{ textAlign: 'center', color: 'var(--text-tertiary)' }}>
+          <div style={{ width: 32, height: 32, border: '3px solid var(--border)', borderTopColor: 'var(--accent)', borderRadius: '50%', animation: 'spin 0.8s linear infinite', margin: '0 auto 12px' }} />
+          <p style={{ fontSize: 13 }}>در حال بارگذاری...</p>
+          <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
         </div>
       </div>
     );
@@ -138,51 +99,28 @@ function App() {
   // نمایش پیام عدم دسترسی برای کاربران غیر عضو کانال
   if (accessDenied && isTelegramWebApp) {
     return (
-      <div style={{ 
-        display: 'flex', 
-        justifyContent: 'center', 
-        alignItems: 'center', 
-        minHeight: '100vh',
-        background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-        padding: '2rem'
-      }}>
-        <div className="card" style={{ textAlign: 'center', maxWidth: '400px' }}>
-          <div style={{ fontSize: '64px', marginBottom: '1rem' }}>🚫</div>
-          <h2 style={{ marginBottom: '1rem' }}>شما دسترسی ندارید</h2>
-          <p style={{ color: '#757575', marginBottom: '1rem' }}>
+      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '100vh', padding: '2rem' }}>
+        <div className="card" style={{ textAlign: 'center', padding: '2rem' }}>
+          <div style={{ fontSize: '48px', marginBottom: '1rem' }}>🚫</div>
+          <p style={{ fontSize: 14, fontWeight: 600, marginBottom: 8 }}>شما دسترسی ندارید</p>
+          <p style={{ fontSize: 13, color: 'var(--text-tertiary)', marginBottom: 16 }}>
             برای استفاده از این برنامه باید عضو کانال رابطین باشید
           </p>
-          <button onClick={() => WebApp.close()} className="secondary">
-            بستن
-          </button>
+          <button onClick={() => WebApp.close()} className="secondary">بستن</button>
         </div>
       </div>
     );
   }
 
-  if (!token && !isTelegramWebApp) {
-    return <Login onLogin={handleLogin} />;
-  }
+  if (!token && !isTelegramWebApp) return <Login onLogin={handleLogin} />;
 
   if (!token && isTelegramWebApp) {
     return (
-      <div style={{ 
-        display: 'flex', 
-        justifyContent: 'center', 
-        alignItems: 'center', 
-        minHeight: '100vh',
-        background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-        padding: '2rem'
-      }}>
-        <div className="card" style={{ textAlign: 'center', maxWidth: '400px' }}>
-          <div style={{ fontSize: '64px', marginBottom: '1rem' }}>❌</div>
-          <h2 style={{ marginBottom: '1rem' }}>خطا در احراز هویت</h2>
-          <p style={{ color: '#757575', marginBottom: '1rem' }}>
-            لطفاً از طریق ربات تلگرام وارد شوید
-          </p>
-          <button onClick={() => WebApp.close()} className="secondary">
-            بستن
-          </button>
+      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '100vh', padding: '2rem' }}>
+        <div className="card" style={{ textAlign: 'center', padding: '2rem' }}>
+          <p style={{ fontSize: 14, fontWeight: 600, marginBottom: 8 }}>خطا در احراز هویت</p>
+          <p style={{ fontSize: 13, color: 'var(--text-tertiary)', marginBottom: 16 }}>لطفاً از طریق ربات وارد شوید</p>
+          <button onClick={() => WebApp.close()} className="secondary">بستن</button>
         </div>
       </div>
     );
@@ -190,59 +128,22 @@ function App() {
 
   return (
     <BrowserRouter>
-      <div style={{ minHeight: '100vh', paddingBottom: isTelegramWebApp ? '70px' : '0' }}>
+      <div style={{ minHeight: '100vh', paddingBottom: '70px' }}>
         {!isTelegramWebApp && <Navbar user={user} onLogout={handleLogout} />}
-        <div style={{ paddingTop: isTelegramWebApp ? '0' : '0' }}>
-          <Routes>
-            <Route path="/" element={<Dashboard user={user} isTelegramWebApp={isTelegramWebApp} />} />
-            <Route path="/reports" element={<ReportList user={user} />} />
-            <Route path="/reports/create" element={<CreateReport />} />
-            <Route path="/reports/assigned" element={<AssignedReports />} />
-            <Route path="/actions/my" element={<MyActions />} />
-            <Route 
-              path="/actions" 
-              element={
-                <ProtectedRoute allowedRoles={['operator', 'admin']}>
-                  <ActionList />
-                </ProtectedRoute>
-              } 
-            />
-            <Route 
-              path="/actions/create" 
-              element={
-                <ProtectedRoute allowedRoles={['operator', 'admin']}>
-                  <CreateAction />
-                </ProtectedRoute>
-              } 
-            />
-            <Route 
-              path="/forms" 
-              element={
-                <ProtectedRoute allowedRoles={['admin']}>
-                  <FormBuilder />
-                </ProtectedRoute>
-              } 
-            />
-            <Route 
-              path="/categories" 
-              element={
-                <ProtectedRoute allowedRoles={['admin']}>
-                  <CategoryManagement />
-                </ProtectedRoute>
-              } 
-            />
-            <Route 
-              path="/users" 
-              element={
-                <ProtectedRoute allowedRoles={['admin']}>
-                  <UserManagement />
-                </ProtectedRoute>
-              } 
-            />
-            <Route path="/change-password" element={<ChangePassword />} />
-            <Route path="*" element={<Navigate to="/" />} />
-          </Routes>
-        </div>
+        <Routes>
+          <Route path="/" element={<Dashboard user={user} isTelegramWebApp={isTelegramWebApp} />} />
+          <Route path="/reports" element={<ReportList user={user} />} />
+          <Route path="/reports/create" element={<CreateReport />} />
+          <Route path="/reports/assigned" element={<AssignedReports />} />
+          <Route path="/actions/my" element={<MyActions />} />
+          <Route path="/actions" element={<ProtectedRoute allowedRoles={['operator', 'admin']}><ActionList /></ProtectedRoute>} />
+          <Route path="/actions/create" element={<ProtectedRoute allowedRoles={['operator', 'admin']}><CreateAction /></ProtectedRoute>} />
+          <Route path="/forms" element={<ProtectedRoute allowedRoles={['admin']}><FormBuilder /></ProtectedRoute>} />
+          <Route path="/categories" element={<ProtectedRoute allowedRoles={['admin']}><CategoryManagement /></ProtectedRoute>} />
+          <Route path="/users" element={<ProtectedRoute allowedRoles={['admin']}><UserManagement /></ProtectedRoute>} />
+          <Route path="/change-password" element={<ChangePassword />} />
+          <Route path="*" element={<Navigate to="/" />} />
+        </Routes>
         {isTelegramWebApp && <TelegramNav user={user} />}
       </div>
     </BrowserRouter>

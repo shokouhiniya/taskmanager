@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import api from '../api/axios';
+import { IconLock } from '../components/Icons';
 
 export default function Login({ onLogin }: { onLogin: (token: string, user: any) => void }) {
   const [username, setUsername] = useState('');
@@ -9,72 +10,45 @@ export default function Login({ onLogin }: { onLogin: (token: string, user: any)
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-    
     try {
       const response = await api.post('/auth/login', { username, password });
       onLogin(response.data.access_token, response.data.user);
     } catch (error: any) {
-      alert('❌ ' + (error.response?.data?.message || 'خطا در ورود'));
-      console.error(error);
+      alert(error.response?.data?.message || 'خطا در ورود');
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div style={{ 
-      display: 'flex', 
-      justifyContent: 'center', 
-      alignItems: 'center', 
-      minHeight: '100vh', 
-      background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)'
-    }}>
-      <div className="card" style={{ width: '420px', boxShadow: '0 8px 32px rgba(0,0,0,0.15)' }}>
+    <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '100vh', padding: '1rem', background: 'var(--bg)' }}>
+      <div style={{ width: '100%', maxWidth: 360 }}>
         <div style={{ textAlign: 'center', marginBottom: '2rem' }}>
-          <div style={{ fontSize: '64px', marginBottom: '1rem' }}>📋</div>
-          <h2 style={{ marginBottom: '0.5rem', color: '#212121' }}>سامانه مدیریت خبر</h2>
-          <p style={{ color: '#757575', fontSize: '14px' }}>ورود به سیستم</p>
+          <div style={{
+            width: 56, height: 56, borderRadius: 16, background: 'var(--accent)',
+            display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+            color: '#fff', marginBottom: '1rem',
+          }}>
+            <IconLock />
+          </div>
+          <h1 style={{ fontSize: 20, fontWeight: 700, color: 'var(--text-primary)', marginBottom: 4 }}>سامانه مدیریت خبر</h1>
+          <p style={{ fontSize: 13, color: 'var(--text-tertiary)' }}>ورود به حساب کاربری</p>
         </div>
-        
-        <form onSubmit={handleSubmit}>
-          <div className="field-group">
-            <label>نام کاربری</label>
-            <input
-              type="text"
-              value={username}
-              onChange={(e) => setUsername(e.target.value)}
-              placeholder="admin"
-              required
-            />
-          </div>
-          
-          <div className="field-group">
-            <label>رمز عبور</label>
-            <input
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              placeholder="••••••••"
-              required
-            />
-          </div>
-          
-          <button type="submit" disabled={loading} style={{ width: '100%', padding: '0.875rem' }}>
-            {loading ? '⏳ در حال ورود...' : '🔐 ورود به سامانه'}
-          </button>
-        </form>
-        
-        <div style={{ 
-          marginTop: '1.5rem', 
-          padding: '1rem', 
-          background: '#e3f2fd', 
-          borderRadius: '8px',
-          fontSize: '13px',
-          color: '#1565c0'
-        }}>
-          <strong>💡 اطلاعات ورود پیش‌فرض:</strong><br/>
-          نام کاربری: <code style={{ background: 'white', padding: '2px 6px', borderRadius: '4px' }}>admin</code><br/>
-          رمز عبور: <code style={{ background: 'white', padding: '2px 6px', borderRadius: '4px' }}>1236987450</code>
+
+        <div className="card" style={{ padding: '1.5rem' }}>
+          <form onSubmit={handleSubmit}>
+            <div className="field-group">
+              <label>نام کاربری</label>
+              <input type="text" value={username} onChange={(e) => setUsername(e.target.value)} placeholder="نام کاربری" required />
+            </div>
+            <div className="field-group">
+              <label>رمز عبور</label>
+              <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="رمز عبور" required />
+            </div>
+            <button type="submit" disabled={loading} style={{ width: '100%', padding: '0.625rem', marginTop: '0.5rem' }}>
+              {loading ? 'در حال ورود...' : 'ورود'}
+            </button>
+          </form>
         </div>
       </div>
     </div>

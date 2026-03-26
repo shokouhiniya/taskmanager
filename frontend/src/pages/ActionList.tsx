@@ -1,114 +1,59 @@
 import { useState, useEffect } from 'react';
 import api from '../api/axios';
 import { useNavigate } from 'react-router-dom';
+import { IconPlus, IconInbox, IconUser } from '../components/Icons';
 
 export default function ActionList() {
   const [actions, setActions] = useState([]);
   const navigate = useNavigate();
 
-  useEffect(() => {
-    fetchActions();
-  }, []);
+  useEffect(() => { fetchActions(); }, []);
+  const fetchActions = async () => { try { setActions((await api.get('/actions')).data); } catch (e) { console.error(e); } };
+  const updateStatus = async (id: string, status: string) => { try { await api.put(`/actions/${id}/status`, { status }); fetchActions(); } catch { alert('خطا'); } };
 
-  const fetchActions = async () => {
-    try {
-      const response = await api.get('/actions');
-      setActions(response.data);
-    } catch (error) {
-      console.error('Error:', error);
-    }
-  };
-
-  const updateStatus = async (actionId: string, status: string) => {
-    try {
-      await api.put(`/actions/${actionId}/status`, { status });
-      fetchActions();
-    } catch (error) {
-      alert('خطا در تغییر وضعیت');
-    }
-  };
-
-  const getStatusLabel = (status: string) => {
-    switch(status) {
-      case 'in_progress': return '⏳ در حال انجام';
-      case 'completed': return '✅ انجام شده';
-      case 'failed': return '❌ ناموفق';
-      default: return status;
-    }
-  };
-
-  const getStatusBadge = (status: string) => {
-    switch(status) {
-      case 'in_progress': return 'badge badge-progress';
-      case 'completed': return 'badge badge-completed';
-      case 'failed': return 'badge badge-failed';
-      default: return 'badge';
-    }
+  const statusMap: Record<string, { label: string; cls: string }> = {
+    in_progress: { label: 'در حال انجام', cls: 'badge-progress' },
+    completed: { label: 'انجام شده', cls: 'badge-completed' },
+    failed: { label: 'ناموفق', cls: 'badge-failed' },
   };
 
   return (
     <div className="container">
-      <div className="page-header" style={{ flexDirection: 'column', gap: '0.75rem', alignItems: 'stretch' }}>
-        <h1 className="page-title" style={{ fontSize: '18px' }}>⚡ لیست اقدامات</h1>
-        <div style={{ display: 'flex', gap: '0.5rem' }}>
-          <button onClick={() => navigate('/actions/create')} className="success" style={{ flex: 1, fontSize: '13px', padding: '0.625rem 1rem' }}>
-            ➕ جدید
-          </button>
-          <button onClick={() => navigate('/')} className="secondary" style={{ fontSize: '13px', padding: '0.625rem 1rem' }}>
-            🏠
-          </button>
-        </div>
+      <div className="page-header">
+        <h1 className="page-title">اقدامات</h1>
+        <button onClick={() => navigate('/actions/create')} className="success" style={{ fontSize: 12, padding: '0.375rem 0.75rem' }}>
+          <IconPlus /> جدید
+        </button>
       </div>
-      
+
       {actions.length === 0 ? (
-        <div className="card" style={{ textAlign: 'center', padding: '2rem' }}>
-          <div style={{ fontSize: '48px', marginBottom: '1rem' }}>📭</div>
-          <p style={{ color: '#757575', marginBottom: '1rem', fontSize: '14px' }}>هنوز اقدامی ثبت نشده است</p>
-          <button onClick={() => navigate('/actions/create')} style={{ width: '100%' }}>
-            ایجاد اولین اقدام
-          </button>
+        <div className="card empty-state">
+          <div style={{ color: 'var(--text-tertiary)' }}><IconInbox /></div>
+          <p style={{ marginTop: 8 }}>اقدامی ثبت نشده</p>
+          <button onClick={() => navigate('/actions/create')} style={{ marginTop: 12, fontSize: 12 }}>ایجاد اقدام</button>
         </div>
-      ) : (
-        actions.map((action: any) => (
-          <div key={action.id} className="card">
-            <div style={{ marginBottom: '1rem' }}>
-              <h3 style={{ marginBottom: '0.5rem', color: '#212121', fontSize: '15px' }}>{action.title}</h3>
-              <p style={{ color: '#616161', fontSize: '13px', marginBottom: '0.75rem' }}>{action.description}</p>
-              
-              <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', marginTop: '0.75rem' }}>
-                <span className={getStatusBadge(action.status)}>
-                  {getStatusLabel(action.status)}
-                </span>
-                <span className="badge" style={{ background: 'rgba(245, 245, 245, 0.9)', color: '#616161' }}>
-                  📊 {action.reports?.length || 0} خبر
-                </span>
-                <span className="badge" style={{ background: 'rgba(245, 245, 245, 0.9)', color: '#616161' }}>
-                  👤 {action.assignedTo?.name || action.assignedTo?.phone}
-                </span>
-              </div>
+      ) : actions.map((a: any) => {
+        const st = statusMap[a.status] || { label: a.status, cls: '' };
+        return (
+          <div key={a.id} className="card">
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 6 }}>
+              <span style={{ fontSize: 14, fontWeight: 600 }}>{a.title}</span>
+              <span className={`badge ${st.cls}`}>{st.label}</span>
             </div>
-            
-            {action.status === 'in_progress' && (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', paddingTop: '1rem', borderTop: '1px solid rgba(240, 240, 240, 0.5)' }}>
-                <button 
-                  onClick={() => updateStatus(action.id, 'completed')}
-                  className="success"
-                  style={{ fontSize: '13px', padding: '0.625rem 1rem', width: '100%' }}
-                >
-                  ✅ انجام شد
-                </button>
-                <button 
-                  onClick={() => updateStatus(action.id, 'failed')}
-                  className="danger"
-                  style={{ fontSize: '13px', padding: '0.625rem 1rem', width: '100%' }}
-                >
-                  ❌ ناموفق
-                </button>
+            <p style={{ fontSize: 12, color: 'var(--text-secondary)', marginBottom: 8 }}>{a.description}</p>
+            <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap', fontSize: 11 }}>
+              <span className="badge badge-neutral">{a.reports?.length || 0} خبر</span>
+              {a.assignedTo && <span className="badge badge-neutral" style={{ display: 'inline-flex', alignItems: 'center', gap: 3 }}><IconUser />{a.assignedTo.name}</span>}
+            </div>
+            {a.status === 'in_progress' && (
+              <div style={{ display: 'flex', gap: 6, marginTop: 10, paddingTop: 10, borderTop: '1px solid var(--border-light)' }}>
+                <button onClick={() => updateStatus(a.id, 'completed')} className="success" style={{ flex: 1, fontSize: 12 }}>انجام شد</button>
+                <button onClick={() => updateStatus(a.id, 'failed')} className="danger" style={{ flex: 1, fontSize: 12 }}>ناموفق</button>
               </div>
             )}
           </div>
-        ))
-      )}
+        );
+      })}
     </div>
   );
 }

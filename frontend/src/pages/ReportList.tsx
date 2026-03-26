@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import api from '../api/axios';
 import { useNavigate } from 'react-router-dom';
+import { IconPlus, IconInbox, IconClock } from '../components/Icons';
 
 export default function ReportList({ user }: { user: any }) {
   const [reports, setReports] = useState([]);
@@ -11,198 +12,94 @@ export default function ReportList({ user }: { user: any }) {
 
   useEffect(() => {
     fetchReports();
-    if (user?.role === 'admin') {
-      fetchUsers();
-    }
+    if (user?.role === 'admin') fetchUsers();
   }, []);
 
   const fetchReports = async () => {
     try {
       const endpoint = user?.role === 'reporter' ? '/reports/my' : '/reports';
-      const response = await api.get(endpoint);
-      setReports(response.data);
-    } catch (error) {
-      console.error('Error:', error);
-    }
+      setReports((await api.get(endpoint)).data);
+    } catch (e) { console.error(e); }
+  };
+  const fetchUsers = async () => { try { setUsers((await api.get('/users')).data); } catch (e) { console.error(e); } };
+  const updateStatus = async (id: string, status: string) => { try { await api.put(`/reports/${id}/status`, { status }); fetchReports(); } catch { alert('خطا'); } };
+  const assignReport = async (id: string) => {
+    try { await api.put(`/reports/${id}/assign`, { assignedToId: selectedUserId }); setShowAssignModal(null); setSelectedUserId(''); fetchReports(); } catch { alert('خطا'); }
   };
 
-  const fetchUsers = async () => {
-    try {
-      const response = await api.get('/users');
-      setUsers(response.data);
-    } catch (error) {
-      console.error('Error:', error);
-    }
-  };
-
-  const updateStatus = async (reportId: string, status: string) => {
-    try {
-      await api.put(`/reports/${reportId}/status`, { status });
-      fetchReports();
-    } catch (error) {
-      alert('خطا در تغییر وضعیت');
-    }
-  };
-
-  const assignReport = async (reportId: string) => {
-    try {
-      await api.put(`/reports/${reportId}/assign`, { assignedToId: selectedUserId });
-      alert('✅ خبر با موفقیت ارجاع شد');
-      setShowAssignModal(null);
-      setSelectedUserId('');
-      fetchReports();
-    } catch (error) {
-      alert('❌ خطا در ارجاع خبر');
-    }
-  };
-
-  const getStatusLabel = (status: string) => {
-    switch(status) {
-      case 'new': return '🆕 جدید';
-      case 'approved': return '✅ تایید شده';
-      case 'assigned': return '📬 ارجاع شده';
-      case 'rejected': return '❌ رد شده';
-      default: return status;
-    }
-  };
-
-  const getStatusBadge = (status: string) => {
-    switch(status) {
-      case 'new': return 'badge badge-new';
-      case 'approved': return 'badge badge-approved';
-      case 'assigned': return 'badge badge-assigned';
-      case 'rejected': return 'badge badge-rejected';
-      default: return 'badge';
-    }
+  const statusMap: Record<string, { label: string; cls: string }> = {
+    new: { label: 'جدید', cls: 'badge-new' },
+    approved: { label: 'تایید شده', cls: 'badge-approved' },
+    assigned: { label: 'ارجاع شده', cls: 'badge-assigned' },
+    rejected: { label: 'رد شده', cls: 'badge-rejected' },
   };
 
   return (
     <div className="container">
-      <div className="page-header" style={{ flexDirection: 'column', gap: '1rem', alignItems: 'stretch' }}>
-        <h1 className="page-title" style={{ fontSize: '20px' }}>
-          {user?.role === 'reporter' ? '📝 خبرهای من' : '📊 همه خبرها'}
-        </h1>
-        <button onClick={() => navigate('/reports/create')} className="success" style={{ width: '100%' }}>
-          ➕ ثبت خبر جدید
+      <div className="page-header">
+        <h1 className="page-title">{user?.role === 'reporter' ? 'خبرهای من' : 'همه خبرها'}</h1>
+        <button onClick={() => navigate('/reports/create')} className="success" style={{ fontSize: 12, padding: '0.375rem 0.75rem' }}>
+          <IconPlus /> ثبت خبر
         </button>
       </div>
-      
+
       {reports.length === 0 ? (
-        <div className="card" style={{ textAlign: 'center', padding: '3rem' }}>
-          <div style={{ fontSize: '64px', marginBottom: '1rem' }}>📭</div>
-          <p style={{ color: '#757575', marginBottom: '1rem' }}>هنوز خبری ثبت نشده است</p>
-          <button onClick={() => navigate('/reports/create')}>
-            ثبت اولین خبر
-          </button>
+        <div className="card empty-state">
+          <div style={{ color: 'var(--text-tertiary)' }}><IconInbox /></div>
+          <p style={{ marginTop: 8 }}>هنوز خبری ثبت نشده</p>
+          <button onClick={() => navigate('/reports/create')} style={{ marginTop: 12, fontSize: 12 }}>ثبت اولین خبر</button>
         </div>
-      ) : (
-        reports.map((report: any) => (
-          <div key={report.id} className="card">
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '1rem' }}>
-              <div style={{ flex: 1 }}>
-                <h3 style={{ marginBottom: '0.75rem', color: '#212121' }}>{report.form?.title}</h3>
-                
-                <div style={{ marginBottom: '1rem', padding: '1rem', background: 'rgba(250, 250, 250, 0.8)', borderRadius: '12px' }}>
-                  {Object.entries(typeof report.data === 'string' ? JSON.parse(report.data || '{}') : report.data || {}).map(([key, value]: any) => (
-                    <p key={key} style={{ fontSize: '14px', color: '#616161', marginBottom: '0.5rem' }}>
-                      <strong>{key}:</strong> {value}
-                    </p>
-                  ))}
-                </div>
-                
-                <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', marginBottom: '0.75rem' }}>
-                  <span className={getStatusBadge(report.status)}>
-                    {getStatusLabel(report.status)}
-                  </span>
-                  <span className="badge" style={{ background: 'rgba(245, 245, 245, 0.9)', color: '#616161' }}>
-                    📁 {report.category?.name}
-                  </span>
-                  {report.assignedTo && (
-                    <span className="badge" style={{ background: 'rgba(245, 245, 245, 0.9)', color: '#616161' }}>
-                      👤 ارجاع به: {report.assignedTo.name}
-                    </span>
-                  )}
-                </div>
-                
-                <p style={{ fontSize: '12px', color: '#9e9e9e' }}>
-                  🕐 {new Date(report.createdAt).toLocaleDateString('fa-IR', { 
-                    year: 'numeric', 
-                    month: 'long', 
-                    day: 'numeric' 
-                  })}
-                </p>
-              </div>
+      ) : reports.map((r: any) => {
+        const st = statusMap[r.status] || { label: r.status, cls: '' };
+        const data = typeof r.data === 'string' ? JSON.parse(r.data || '{}') : r.data || {};
+        return (
+          <div key={r.id} className="card">
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 8 }}>
+              <span style={{ fontSize: 14, fontWeight: 600 }}>{r.form?.title}</span>
+              <span className={`badge ${st.cls}`}>{st.label}</span>
             </div>
-            
-            {user?.role === 'admin' && report.status === 'new' && (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', paddingTop: '1rem', borderTop: '1px solid rgba(224, 224, 224, 0.5)' }}>
-                <button 
-                  onClick={() => updateStatus(report.id, 'approved')}
-                  className="success"
-                  style={{ fontSize: '13px', padding: '0.625rem 1rem', width: '100%' }}
-                >
-                  ✅ تایید
-                </button>
-                <button 
-                  onClick={() => setShowAssignModal(report.id)}
-                  className="warning"
-                  style={{ fontSize: '13px', padding: '0.625rem 1rem', width: '100%' }}
-                >
-                  📬 تایید و ارجاع
-                </button>
-                <button 
-                  onClick={() => updateStatus(report.id, 'rejected')}
-                  className="danger"
-                  style={{ fontSize: '13px', padding: '0.625rem 1rem', width: '100%' }}
-                >
-                  ❌ رد
-                </button>
+
+            <div style={{ background: 'var(--surface-hover)', borderRadius: 'var(--radius-sm)', padding: '0.625rem', marginBottom: 8 }}>
+              {Object.entries(data).map(([k, v]: any) => (
+                <p key={k} style={{ fontSize: 12, color: 'var(--text-secondary)', marginBottom: 4 }}>
+                  <span style={{ fontWeight: 500 }}>{k}:</span> {v}
+                </p>
+              ))}
+            </div>
+
+            <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap', alignItems: 'center', fontSize: 11, color: 'var(--text-tertiary)' }}>
+              {r.category && <span className="badge badge-neutral">{r.category.name}</span>}
+              {r.assignedTo && <span className="badge badge-neutral">ارجاع: {r.assignedTo.name}</span>}
+              <span style={{ display: 'inline-flex', alignItems: 'center', gap: 3, marginRight: 'auto' }}>
+                <IconClock />
+                {new Date(r.createdAt).toLocaleDateString('fa-IR')}
+              </span>
+            </div>
+
+            {user?.role === 'admin' && r.status === 'new' && (
+              <div style={{ display: 'flex', gap: 6, marginTop: 10, paddingTop: 10, borderTop: '1px solid var(--border-light)' }}>
+                <button onClick={() => updateStatus(r.id, 'approved')} className="success" style={{ flex: 1, fontSize: 12 }}>تایید</button>
+                <button onClick={() => setShowAssignModal(r.id)} className="warning" style={{ flex: 1, fontSize: 12 }}>ارجاع</button>
+                <button onClick={() => updateStatus(r.id, 'rejected')} className="danger" style={{ flex: 1, fontSize: 12 }}>رد</button>
               </div>
             )}
 
-            {showAssignModal === report.id && (
-              <div style={{ 
-                marginTop: '1rem', 
-                padding: '1rem', 
-                background: 'rgba(227, 242, 253, 0.5)', 
-                borderRadius: '12px',
-                backdropFilter: 'blur(10px)'
-              }}>
-                <h4 style={{ marginBottom: '1rem', fontSize: '14px' }}>ارجاع به کاربر:</h4>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-                  <select 
-                    value={selectedUserId} 
-                    onChange={(e) => setSelectedUserId(e.target.value)}
-                    style={{ width: '100%' }}
-                  >
-                    <option value="">انتخاب کاربر</option>
-                    {users.map((u: any) => (
-                      <option key={u.id} value={u.id}>{u.name} ({u.username})</option>
-                    ))}
-                  </select>
-                  <div style={{ display: 'flex', gap: '0.5rem' }}>
-                    <button 
-                      onClick={() => assignReport(report.id)}
-                      disabled={!selectedUserId}
-                      className="success"
-                      style={{ fontSize: '13px', flex: 1 }}
-                    >
-                      ارجاع
-                    </button>
-                    <button 
-                      onClick={() => setShowAssignModal(null)}
-                      className="secondary"
-                      style={{ fontSize: '13px', flex: 1 }}
-                    >
-                      انصراف
-                    </button>
-                  </div>
+            {showAssignModal === r.id && (
+              <div style={{ marginTop: 10, padding: '0.75rem', background: 'var(--accent-light)', borderRadius: 'var(--radius-sm)' }}>
+                <label>ارجاع به:</label>
+                <select value={selectedUserId} onChange={(e) => setSelectedUserId(e.target.value)} style={{ marginBottom: 8 }}>
+                  <option value="">انتخاب کاربر</option>
+                  {users.map((u: any) => <option key={u.id} value={u.id}>{u.name} ({u.username})</option>)}
+                </select>
+                <div style={{ display: 'flex', gap: 6 }}>
+                  <button onClick={() => assignReport(r.id)} disabled={!selectedUserId} className="success" style={{ flex: 1, fontSize: 12 }}>ارجاع</button>
+                  <button onClick={() => setShowAssignModal(null)} className="secondary" style={{ flex: 1, fontSize: 12 }}>انصراف</button>
                 </div>
               </div>
             )}
           </div>
-        ))
-      )}
+        );
+      })}
     </div>
   );
 }

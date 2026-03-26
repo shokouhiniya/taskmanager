@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, OnModuleInit, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Category } from '../database/entities/category.entity';
@@ -6,13 +6,20 @@ import { User } from '../database/entities/user.entity';
 import * as bcrypt from 'bcryptjs';
 
 @Injectable()
-export class SeedService {
+export class SeedService implements OnModuleInit {
+  private readonly logger = new Logger(SeedService.name);
+
   constructor(
     @InjectRepository(Category)
     private categoryRepository: Repository<Category>,
     @InjectRepository(User)
     private userRepository: Repository<User>,
   ) {}
+
+  async onModuleInit() {
+    await this.seed();
+    this.logger.log('✅ Seed completed on startup');
+  }
 
   async seed() {
     const categoryCount = await this.categoryRepository.count();

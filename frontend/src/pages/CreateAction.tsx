@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import api from '../api/axios';
 import { useNavigate } from 'react-router-dom';
+import { IconChevron } from '../components/Icons';
 
 export default function CreateAction() {
   const [reports, setReports] = useState([]);
@@ -11,151 +12,66 @@ export default function CreateAction() {
   const [selectedReports, setSelectedReports] = useState<string[]>([]);
   const navigate = useNavigate();
 
-  useEffect(() => {
-    fetchReports();
-    fetchUsers();
-  }, []);
-
-  const fetchReports = async () => {
-    try {
-      const response = await api.get('/reports');
-      setReports(response.data.filter((r: any) => r.status === 'needs_action'));
-    } catch (error) {
-      console.error('Error:', error);
-    }
-  };
-
-  const fetchUsers = async () => {
-    try {
-      const response = await api.get('/users');
-      setUsers(response.data);
-    } catch (error) {
-      console.error('Error:', error);
-    }
-  };
+  useEffect(() => { fetchReports(); fetchUsers(); }, []);
+  const fetchReports = async () => { try { setReports((await api.get('/reports')).data.filter((r: any) => r.status === 'needs_action')); } catch (e) { console.error(e); } };
+  const fetchUsers = async () => { try { setUsers((await api.get('/users')).data); } catch (e) { console.error(e); } };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      await api.post('/actions', {
-        title,
-        description,
-        assignedToId,
-        reportIds: selectedReports
-      });
-      alert('✅ اقدام با موفقیت ایجاد شد');
+      await api.post('/actions', { title, description, assignedToId, reportIds: selectedReports });
+      alert('اقدام ایجاد شد');
       navigate('/actions');
-    } catch (error) {
-      alert('❌ خطا در ایجاد اقدام');
-      console.error(error);
-    }
+    } catch { alert('خطا'); }
   };
 
-  const toggleReport = (reportId: string) => {
-    if (selectedReports.includes(reportId)) {
-      setSelectedReports(selectedReports.filter(id => id !== reportId));
-    } else {
-      setSelectedReports([...selectedReports, reportId]);
-    }
-  };
+  const toggleReport = (id: string) => setSelectedReports(prev => prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]);
 
   return (
     <div className="container">
-      <div className="page-header" style={{ flexDirection: 'row', gap: '0.75rem', alignItems: 'center' }}>
-        <h1 className="page-title" style={{ flex: 1, fontSize: '18px' }}>➕ ایجاد اقدام</h1>
-        <button onClick={() => navigate('/actions')} className="secondary" style={{ fontSize: '13px', padding: '0.5rem 1rem' }}>
-          🔙
-        </button>
+      <div className="page-header">
+        <h1 className="page-title">ایجاد اقدام</h1>
+        <button onClick={() => navigate(-1)} className="ghost" style={{ padding: '0.375rem' }}><IconChevron /></button>
       </div>
-      
-      <div className="card">
+
+      <div className="card" style={{ padding: '1.25rem' }}>
         <form onSubmit={handleSubmit}>
           <div className="field-group">
-            <label>عنوان اقدام</label>
-            <input
-              type="text"
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
-              placeholder="مثال: بررسی و رفع مشکل سرور"
-              required
-            />
+            <label>عنوان</label>
+            <input type="text" value={title} onChange={(e) => setTitle(e.target.value)} placeholder="عنوان اقدام" required />
           </div>
-
           <div className="field-group">
-            <label>توضیحات کامل</label>
-            <textarea
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              placeholder="شرح کامل اقدام مورد نیاز..."
-              required
-              rows={4}
-            />
+            <label>توضیحات</label>
+            <textarea value={description} onChange={(e) => setDescription(e.target.value)} placeholder="شرح اقدام" required rows={3} />
           </div>
-
           <div className="field-group">
             <label>مسئول انجام</label>
             <select value={assignedToId} onChange={(e) => setAssignedToId(e.target.value)} required>
-              <option value="">👤 انتخاب مسئول</option>
-              {users.map((user: any) => (
-                <option key={user.id} value={user.id}>
-                  {user.name || user.phone} - {user.role === 'admin' ? 'مدیر' : user.role === 'operator' ? 'کارشناس' : 'کاربر'}
-                </option>
+              <option value="">انتخاب مسئول</option>
+              {users.map((u: any) => (
+                <option key={u.id} value={u.id}>{u.name || u.phone} - {u.role === 'admin' ? 'مدیر' : u.role === 'operator' ? 'کارشناس' : 'کاربر'}</option>
               ))}
             </select>
           </div>
-
           <div className="field-group">
-            <label>خبرهای مرتبط ({selectedReports.length} انتخاب شده)</label>
-            <div style={{ 
-              maxHeight: '250px', 
-              overflow: 'auto', 
-              border: '1px solid rgba(224, 224, 224, 0.5)', 
-              padding: '0.75rem', 
-              borderRadius: '8px',
-              background: 'rgba(250, 250, 250, 0.8)'
-            }}>
+            <label>خبرهای مرتبط ({selectedReports.length})</label>
+            <div style={{ maxHeight: 200, overflow: 'auto', border: '1px solid var(--border)', borderRadius: 'var(--radius-sm)', padding: '0.5rem' }}>
               {reports.length === 0 ? (
-                <p style={{ textAlign: 'center', color: '#757575', padding: '1rem', fontSize: '13px' }}>
-                  هیچ خبر نیازمند اقدامی وجود ندارد
-                </p>
-              ) : (
-                reports.map((report: any) => (
-                  <div key={report.id} style={{ 
-                    marginBottom: '0.75rem',
-                    padding: '0.75rem',
-                    background: 'white',
-                    borderRadius: '8px',
-                    border: selectedReports.includes(report.id) ? '2px solid #1976d2' : '1px solid rgba(224, 224, 224, 0.5)'
-                  }}>
-                    <label style={{ display: 'flex', alignItems: 'flex-start', cursor: 'pointer', margin: 0 }}>
-                      <input
-                        type="checkbox"
-                        checked={selectedReports.includes(report.id)}
-                        onChange={() => toggleReport(report.id)}
-                        style={{ marginLeft: '0.75rem', width: 'auto', marginTop: '0.25rem' }}
-                      />
-                      <div style={{ flex: 1 }}>
-                        <div style={{ fontWeight: 500, color: '#212121', marginBottom: '0.25rem', fontSize: '14px' }}>
-                          {report.form?.title}
-                        </div>
-                        <div style={{ fontSize: '12px', color: '#757575' }}>
-                          📁 {report.category?.name} • 🕐 {new Date(report.createdAt).toLocaleDateString('fa-IR')}
-                        </div>
-                      </div>
-                    </label>
+                <p style={{ textAlign: 'center', color: 'var(--text-tertiary)', padding: '1rem', fontSize: 12 }}>خبری نیازمند اقدام نیست</p>
+              ) : reports.map((r: any) => (
+                <label key={r.id} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '0.5rem', borderRadius: 6, cursor: 'pointer', background: selectedReports.includes(r.id) ? 'var(--accent-light)' : 'transparent', marginBottom: 4 }}>
+                  <input type="checkbox" checked={selectedReports.includes(r.id)} onChange={() => toggleReport(r.id)} style={{ width: 'auto' }} />
+                  <div>
+                    <div style={{ fontSize: 13, fontWeight: 500 }}>{r.form?.title}</div>
+                    <div style={{ fontSize: 11, color: 'var(--text-tertiary)' }}>{r.category?.name}</div>
                   </div>
-                ))
-              )}
+                </label>
+              ))}
             </div>
           </div>
-
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', marginTop: '1.5rem' }}>
-            <button type="submit" className="success" style={{ width: '100%' }}>
-              ✅ ایجاد اقدام
-            </button>
-            <button type="button" onClick={() => navigate('/actions')} className="secondary" style={{ width: '100%' }}>
-              ❌ انصراف
-            </button>
+          <div style={{ display: 'flex', gap: 8, marginTop: 16 }}>
+            <button type="submit" className="success" style={{ flex: 1 }}>ایجاد</button>
+            <button type="button" onClick={() => navigate('/actions')} className="secondary" style={{ flex: 1 }}>انصراف</button>
           </div>
         </form>
       </div>

@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import api from '../api/axios';
 import { useNavigate } from 'react-router-dom';
+import { IconPlus, IconEdit, IconTrash, IconChevron } from '../components/Icons';
 
 export default function FormBuilder() {
   const [forms, setForms] = useState([]);
@@ -9,234 +10,78 @@ export default function FormBuilder() {
   const [editingId, setEditingId] = useState<string | null>(null);
   const navigate = useNavigate();
 
-  useEffect(() => {
-    fetchForms();
-  }, []);
-
-  const fetchForms = async () => {
-    try {
-      const response = await api.get('/forms');
-      setForms(response.data);
-    } catch (error) {
-      console.error('Error:', error);
-    }
-  };
-
-  const addField = () => {
-    setFields([...fields, { name: '', label: '', type: 'text', required: false }]);
-  };
+  useEffect(() => { fetchForms(); }, []);
+  const fetchForms = async () => { try { setForms((await api.get('/forms')).data); } catch (e) { console.error(e); } };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      if (editingId) {
-        await api.put(`/forms/${editingId}`, { title, schema: { fields } });
-        alert('✅ فرم با موفقیت ویرایش شد');
-        setEditingId(null);
-      } else {
-        await api.post('/forms', { title, schema: { fields } });
-        alert('✅ فرم با موفقیت ایجاد شد');
-      }
-      setTitle('');
-      setFields([]);
-      fetchForms();
-    } catch (error) {
-      alert('❌ خطا در ذخیره فرم');
-      console.error(error);
-    }
+      if (editingId) { await api.put(`/forms/${editingId}`, { title, schema: { fields } }); setEditingId(null); }
+      else { await api.post('/forms', { title, schema: { fields } }); }
+      setTitle(''); setFields([]); fetchForms();
+    } catch { alert('خطا'); }
   };
 
-  const handleEdit = (form: any) => {
-    setEditingId(form.id);
-    setTitle(form.title);
-    setFields(form.schema?.fields || []);
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-  };
-
-  const handleDelete = async (formId: string) => {
-    if (!confirm('آیا از حذف این فرم اطمینان دارید؟')) return;
-    
-    try {
-      await api.delete(`/forms/${formId}`);
-      alert('✅ فرم حذف شد');
-      fetchForms();
-    } catch (error) {
-      alert('❌ خطا در حذف فرم');
-    }
-  };
-
-  const cancelEdit = () => {
-    setEditingId(null);
-    setTitle('');
-    setFields([]);
-  };
+  const handleEdit = (f: any) => { setEditingId(f.id); setTitle(f.title); setFields(f.schema?.fields || []); window.scrollTo({ top: 0, behavior: 'smooth' }); };
+  const handleDelete = async (id: string) => { if (!confirm('حذف شود؟')) return; try { await api.delete(`/forms/${id}`); fetchForms(); } catch { alert('خطا'); } };
 
   return (
     <div className="container">
-      <div className="page-header" style={{ flexDirection: 'row', gap: '0.75rem', alignItems: 'center' }}>
-        <h1 className="page-title" style={{ flex: 1, fontSize: '20px' }}>🎨 فرم‌ساز</h1>
-        <button onClick={() => navigate('/')} className="secondary" style={{ fontSize: '13px', padding: '0.5rem 1rem' }}>
-          🏠
-        </button>
+      <div className="page-header">
+        <h1 className="page-title">فرم‌ساز</h1>
+        <button onClick={() => navigate(-1)} className="ghost" style={{ padding: '0.375rem' }}><IconChevron /></button>
       </div>
-      
-      <div className="card">
-        <h3 style={{ marginBottom: '1.5rem', fontSize: '16px', color: '#212121' }}>
-          {editingId ? '✏️ ویرایش فرم' : '➕ ایجاد فرم جدید'}
-        </h3>
+
+      <div className="card" style={{ padding: '1.25rem', marginBottom: 16 }}>
+        <div style={{ fontSize: 14, fontWeight: 600, marginBottom: 12 }}>{editingId ? 'ویرایش فرم' : 'فرم جدید'}</div>
         <form onSubmit={handleSubmit}>
           <div className="field-group">
             <label>عنوان فرم</label>
-            <input
-              type="text"
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
-              placeholder="مثال: گزارش مشکل فنی"
-              required
-            />
+            <input type="text" value={title} onChange={(e) => setTitle(e.target.value)} placeholder="عنوان فرم" required />
           </div>
 
-          <h4 style={{ marginBottom: '1rem', fontSize: '15px', color: '#424242' }}>فیلدهای فرم</h4>
-          
-          {fields.length === 0 && (
-            <div style={{ 
-              padding: '2rem', 
-              textAlign: 'center', 
-              background: 'rgba(250, 250, 250, 0.8)', 
-              borderRadius: '12px',
-              marginBottom: '1rem',
-              backdropFilter: 'blur(10px)'
-            }}>
-              <div style={{ fontSize: '48px', marginBottom: '0.5rem' }}>📝</div>
-              <p style={{ color: '#757575' }}>هنوز فیلدی اضافه نشده</p>
-            </div>
-          )}
-          
-          {fields.map((field, index) => (
-            <div key={index} style={{ 
-              marginBottom: '1rem', 
-              padding: '1rem', 
-              background: 'rgba(250, 250, 250, 0.8)', 
-              borderRadius: '12px', 
-              position: 'relative',
-              border: '1px solid rgba(224, 224, 224, 0.5)',
-              backdropFilter: 'blur(10px)'
-            }}>
-              <button
-                type="button"
-                onClick={() => setFields(fields.filter((_, i) => i !== index))}
-                className="danger"
-                style={{ 
-                  position: 'absolute', 
-                  left: '0.75rem', 
-                  top: '0.75rem',
-                  padding: '0.375rem 0.625rem',
-                  fontSize: '11px'
-                }}
-              >
-                🗑️
-              </button>
-              
-              <div style={{ marginBottom: '0.75rem' }}>
-                <label style={{ fontSize: '13px' }}>نام فیلد (انگلیسی)</label>
-                <input
-                  type="text"
-                  placeholder="مثال: title"
-                  value={field.name}
-                  onChange={(e) => {
-                    const newFields = [...fields];
-                    newFields[index].name = e.target.value;
-                    setFields(newFields);
-                  }}
-                />
-              </div>
-              
-              <div style={{ marginBottom: '0.75rem' }}>
-                <label style={{ fontSize: '13px' }}>برچسب فیلد (فارسی)</label>
-                <input
-                  type="text"
-                  placeholder="مثال: عنوان"
-                  value={field.label}
-                  onChange={(e) => {
-                    const newFields = [...fields];
-                    newFields[index].label = e.target.value;
-                    setFields(newFields);
-                  }}
-                />
-              </div>
-              
-              <div>
-                <label style={{ fontSize: '13px' }}>نوع فیلد</label>
-                <select
-                  value={field.type}
-                  onChange={(e) => {
-                    const newFields = [...fields];
-                    newFields[index].type = e.target.value;
-                    setFields(newFields);
-                  }}
-                >
-                  <option value="text">📝 متن کوتاه</option>
-                  <option value="textarea">📄 متن بلند</option>
-                  <option value="number">🔢 عدد</option>
-                  <option value="date">📅 تاریخ</option>
-                </select>
+          <div style={{ fontSize: 13, fontWeight: 500, color: 'var(--text-secondary)', marginBottom: 8 }}>فیلدها</div>
+          {fields.length === 0 && <p style={{ fontSize: 12, color: 'var(--text-tertiary)', textAlign: 'center', padding: '1rem 0' }}>فیلدی اضافه نشده</p>}
+
+          {fields.map((field, i) => (
+            <div key={i} style={{ padding: '0.75rem', background: 'var(--surface-hover)', borderRadius: 'var(--radius-sm)', marginBottom: 8, position: 'relative' }}>
+              <button type="button" onClick={() => setFields(fields.filter((_, idx) => idx !== i))} className="ghost"
+                style={{ position: 'absolute', left: 8, top: 8, padding: 4, color: 'var(--danger)' }}><IconTrash /></button>
+              <div style={{ display: 'grid', gap: 8 }}>
+                <div><label style={{ fontSize: 11 }}>نام (انگلیسی)</label><input type="text" placeholder="field_name" value={field.name} onChange={(e) => { const f = [...fields]; f[i].name = e.target.value; setFields(f); }} /></div>
+                <div><label style={{ fontSize: 11 }}>برچسب</label><input type="text" placeholder="برچسب فارسی" value={field.label} onChange={(e) => { const f = [...fields]; f[i].label = e.target.value; setFields(f); }} /></div>
+                <div><label style={{ fontSize: 11 }}>نوع</label>
+                  <select value={field.type} onChange={(e) => { const f = [...fields]; f[i].type = e.target.value; setFields(f); }}>
+                    <option value="text">متن کوتاه</option><option value="textarea">متن بلند</option><option value="number">عدد</option><option value="date">تاریخ</option>
+                  </select>
+                </div>
               </div>
             </div>
           ))}
 
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', marginTop: '1.5rem' }}>
-            <button type="button" onClick={addField} className="success" style={{ width: '100%' }}>
-              ➕ افزودن فیلد
-            </button>
-            <button type="submit" disabled={fields.length === 0} style={{ width: '100%' }}>
-              💾 {editingId ? 'ذخیره تغییرات' : 'ذخیره فرم'}
-            </button>
-            {editingId && (
-              <button type="button" onClick={cancelEdit} className="secondary" style={{ width: '100%' }}>
-                ❌ انصراف
-              </button>
-            )}
-          </div>
+          <button type="button" onClick={() => setFields([...fields, { name: '', label: '', type: 'text', required: false }])} className="secondary" style={{ width: '100%', marginBottom: 8 }}>
+            <IconPlus /> افزودن فیلد
+          </button>
+          <button type="submit" disabled={fields.length === 0} className="success" style={{ width: '100%' }}>
+            {editingId ? 'ذخیره تغییرات' : 'ذخیره فرم'}
+          </button>
+          {editingId && <button type="button" onClick={() => { setEditingId(null); setTitle(''); setFields([]); }} className="secondary" style={{ width: '100%', marginTop: 6 }}>انصراف</button>}
         </form>
       </div>
 
-      <h2 style={{ margin: '2rem 0 1rem', fontSize: '18px', color: '#212121' }}>📋 فرم‌های موجود</h2>
-      
-      {forms.length === 0 ? (
-        <div className="card" style={{ textAlign: 'center', padding: '2rem' }}>
-          <div style={{ fontSize: '48px', marginBottom: '1rem' }}>📭</div>
-          <p style={{ color: '#757575', fontSize: '14px' }}>هنوز فرمی ایجاد نشده است</p>
+      <div style={{ fontSize: 14, fontWeight: 600, marginBottom: 10 }}>فرم‌های موجود</div>
+      {forms.length === 0 ? <div className="card empty-state"><p>فرمی نیست</p></div> : forms.map((f: any) => (
+        <div key={f.id} className="card" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <div>
+            <div style={{ fontSize: 13, fontWeight: 600 }}>{f.title}</div>
+            <div style={{ fontSize: 11, color: 'var(--text-tertiary)' }}>{f.schema?.fields?.length || 0} فیلد</div>
+          </div>
+          <div style={{ display: 'flex', gap: 4 }}>
+            <button onClick={() => handleEdit(f)} className="ghost" style={{ padding: 6, color: 'var(--warning)' }}><IconEdit /></button>
+            <button onClick={() => handleDelete(f.id)} className="ghost" style={{ padding: 6, color: 'var(--danger)' }}><IconTrash /></button>
+          </div>
         </div>
-      ) : (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-          {forms.map((form: any) => (
-            <div key={form.id} className="card">
-              <div style={{ marginBottom: '0.75rem' }}>
-                <h3 style={{ marginBottom: '0.5rem', color: '#212121', fontSize: '15px' }}>{form.title}</h3>
-                <p style={{ fontSize: '13px', color: '#757575' }}>
-                  📊 تعداد فیلدها: {form.schema?.fields?.length || 0}
-                </p>
-              </div>
-              <div style={{ display: 'flex', gap: '0.5rem' }}>
-                <button 
-                  onClick={() => handleEdit(form)}
-                  className="warning"
-                  style={{ fontSize: '12px', padding: '0.5rem 0.875rem', flex: 1 }}
-                >
-                  ✏️ ویرایش
-                </button>
-                <button 
-                  onClick={() => handleDelete(form.id)}
-                  className="danger"
-                  style={{ fontSize: '12px', padding: '0.5rem 0.875rem', flex: 1 }}
-                >
-                  🗑️ حذف
-                </button>
-              </div>
-            </div>
-          ))}
-        </div>
-      )}
+      ))}
     </div>
   );
 }
